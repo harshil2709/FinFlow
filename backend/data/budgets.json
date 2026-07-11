@@ -1,0 +1,30 @@
+[
+  {
+    "_id": "1783768749403",
+    "category": "Food",
+    "limit": 8000,
+    "createdAt": "2026-07-11T11:19:09.403Z",
+    "updatedAt": "2026-07-11T11:19:09.403Z"
+  },
+  {
+    "_id": "1783768749413",
+    "category": "Utilities",
+    "limit": 5000,
+    "createdAt": "2026-07-11T11:19:09.413Z",
+    "updatedAt": "2026-07-11T11:19:09.413Z"
+  },
+  {
+    "_id": "1783768749422",
+    "category": "Entertainment",
+    "limit": 4000,
+    "createdAt": "2026-07-11T11:19:09.422Z",
+    "updatedAt": "2026-07-11T11:19:09.422Z"
+  },
+  {
+    "_id": "1783768749439",
+    "category": "Travel",
+    "limit": 6000,
+    "createdAt": "2026-07-11T11:19:09.439Z",
+    "updatedAt": "2026-07-11T11:19:09.439Z"
+  }
+]

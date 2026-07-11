@@ -1,0 +1,46 @@
+[
+  {
+    "_id": "1783768749463",
+    "title": "Netflix Premium",
+    "amount": 649,
+    "billingCycle": "monthly",
+    "category": "Entertainment",
+    "nextDueDate": "2026-07-14",
+    "status": "active",
+    "createdAt": "2026-07-11T11:19:09.463Z",
+    "updatedAt": "2026-07-11T11:19:09.463Z"
+  },
+  {
+    "_id": "1783768749473",
+    "title": "Gym Membership",
+    "amount": 1500,
+    "billingCycle": "monthly",
+    "category": "Other",
+    "nextDueDate": "2026-07-26",
+    "status": "active",
+    "createdAt": "2026-07-11T11:19:09.473Z",
+    "updatedAt": "2026-07-11T11:19:09.473Z"
+  },
+  {
+    "_id": "1783768749495",
+    "title": "AWS Cloud Hosting",
+    "amount": 450,
+    "billingCycle": "yearly",
+    "category": "Utilities",
+    "nextDueDate": "2026-07-12",
+    "status": "active",
+    "createdAt": "2026-07-11T11:19:09.495Z",
+    "updatedAt": "2026-07-11T11:19:40.429Z"
+  },
+  {
+    "_id": "1783768872579",
+    "title": "Youtube music",
+    "amount": 129,
+    "billingCycle": "monthly",
+    "category": "Entertainment",
+    "nextDueDate": "2026-08-14",
+    "status": "active",
+    "createdAt": "2026-07-11T11:21:12.579Z",
+    "updatedAt": "2026-07-11T11:21:12.579Z"
+  }
+]

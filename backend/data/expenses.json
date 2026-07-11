@@ -1,0 +1,90 @@
+[
+  {
+    "_id": "1783768749325",
+    "title": "Monthly Salary",
+    "amount": 85000,
+    "type": "income",
+    "category": "Salary",
+    "date": "2026-07-01",
+    "description": "Main job payroll",
+    "createdAt": "2026-07-11T11:19:09.325Z",
+    "updatedAt": "2026-07-11T11:19:09.325Z"
+  },
+  {
+    "_id": "1783768749336",
+    "title": "Apartment Rent",
+    "amount": 15000,
+    "type": "expense",
+    "category": "Rent",
+    "date": "2026-07-02",
+    "description": "July rent payment",
+    "createdAt": "2026-07-11T11:19:09.336Z",
+    "updatedAt": "2026-07-11T11:19:09.336Z"
+  },
+  {
+    "_id": "1783768749343",
+    "title": "Gourmet Dinner",
+    "amount": 1200,
+    "type": "expense",
+    "category": "Food",
+    "date": "2026-07-04",
+    "description": "Dinner with friends",
+    "createdAt": "2026-07-11T11:19:09.343Z",
+    "updatedAt": "2026-07-11T11:19:09.343Z"
+  },
+  {
+    "_id": "1783768749351",
+    "title": "Freelance Web Design",
+    "amount": 20000,
+    "type": "income",
+    "category": "Freelance",
+    "date": "2026-07-05",
+    "description": "Portfolio landing page UI",
+    "createdAt": "2026-07-11T11:19:09.351Z",
+    "updatedAt": "2026-07-11T11:19:09.351Z"
+  },
+  {
+    "_id": "1783768749357",
+    "title": "Electricity & Internet",
+    "amount": 2400,
+    "type": "expense",
+    "category": "Utilities",
+    "date": "2026-07-06",
+    "description": "Broadband + power",
+    "createdAt": "2026-07-11T11:19:09.358Z",
+    "updatedAt": "2026-07-11T11:19:09.358Z"
+  },
+  {
+    "_id": "1783768749368",
+    "title": "Petrol refuel",
+    "amount": 1800,
+    "type": "expense",
+    "category": "Travel",
+    "date": "2026-07-07",
+    "description": "Car tank full",
+    "createdAt": "2026-07-11T11:19:09.368Z",
+    "updatedAt": "2026-07-11T11:19:09.368Z"
+  },
+  {
+    "_id": "1783768749378",
+    "title": "Movie Night & Snacks",
+    "amount": 950,
+    "type": "expense",
+    "category": "Entertainment",
+    "date": "2026-07-08",
+    "description": "Watched sci-fi flick",
+    "createdAt": "2026-07-11T11:19:09.378Z",
+    "updatedAt": "2026-07-11T11:19:09.378Z"
+  },
+  {
+    "_id": "1783768749390",
+    "title": "Sneakers Purchase",
+    "amount": 4500,
+    "type": "expense",
+    "category": "Shopping",
+    "date": "2026-07-09",
+    "description": "New running shoes",
+    "createdAt": "2026-07-11T11:19:09.390Z",
+    "updatedAt": "2026-07-11T11:19:09.390Z"
+  }
+]
