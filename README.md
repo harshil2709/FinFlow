@@ -9,6 +9,7 @@ FinFlow is a resilient, feature-rich financial dashboard built on the **MERN (Mo
 - **Resilient Hybrid Storage Engine**: Architected a custom fail-safe database connection system that dynamically tests local/cloud MongoDB connectivity (with a 2s timeout) and automatically falls back to local JSON flat-file storage when database clusters are unreachable, ensuring **100% uptime**.
 - **Interactive Financial Analytics**: Developed time-series trend lines and category distribution doughnut charts utilizing `react-chartjs-2`, displaying instant updates as CRUD operations occur.
 - **Budget Compliance Monitor**: Programmed a category-wise limit tracking engine showing real-time visual progress gauges (Safe, Warning, Exceeded) comparing actual spend against limits.
+- **Auto-Debit Subscriptions Tracker**: Engineered a recurring billing tracker that aggregates fixed monthly auto-debits (normalizing yearly fees) and renders a color-coded upcoming payment timeline with dynamic alerts.
 - **Data Export & Portability**: Integrated a client-side CSV encoder enabling instant, custom-filtered data downloads based on search text, categories, dates, and transaction types.
 - **Placement Demonstration Mode**: Added an automated seeding engine to populate the database with comprehensive mock transactions and budgets, facilitating friction-free recruiter evaluations.
 
