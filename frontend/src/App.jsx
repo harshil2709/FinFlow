@@ -31,6 +31,7 @@ import {
   ArcElement
 } from 'chart.js';
 import { Line, Doughnut } from 'react-chartjs-2';
+import logoImg from './assets/logo.png';
 
 // Register Chart.js components
 ChartJS.register(
@@ -726,9 +727,7 @@ function App() {
       {/* Sidebar navigation */}
       <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="brand">
-          <div className="brand-logo">
-            <Wallet size={20} color="white" />
-          </div>
+          <img src={logoImg} alt="FinFlow Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} />
           <span className="brand-name">FinFlow</span>
         </div>
 
@@ -764,7 +763,7 @@ function App() {
         </ul>
 
         <div className="sidebar-footer">
-          <p>© 2026 FinFlow App</p>
+          <p> FinFlow </p>
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
