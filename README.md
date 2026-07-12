@@ -19,19 +19,19 @@ FinFlow is a resilient, feature-rich financial dashboard built on the **MERN (Mo
 
 ```mermaid
 graph TD
-    subgraph Frontend (React + Vite)
+    subgraph "Frontend (React + Vite)"
         A[Dashboard UI] -->|API Calls| B[Fetch API Services]
         C[Custom Glassmorphism CSS] -.-> A
         A -->|Interactive Visualizations| D[Chart.js / React-Chartjs-2]
     end
 
-    subgraph Backend (Express.js / Node.js)
+    subgraph "Backend (Express.js / Node.js)"
         B -->|REST Requests| E[server.js Gateway]
         E -->|Routing Layer| F[expenseroutes.js]
         F -->|Business Logic| G[expensecontroller.js]
     end
 
-    subgraph Storage Layer
+    subgraph "Storage Layer"
         G -->|Dynamic Driver Check| H{Mongoose Active?}
         H -->|Yes| I[(MongoDB Cloud / Local)]
         H -->|No Fallback| J[(Local JSON Storage)]
