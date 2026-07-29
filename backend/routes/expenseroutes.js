@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
+const { protect } = require("../middleware/authMiddleware");
+const { registerUser, loginUser, getMe } = require("../controllers/authController");
+
 const {
     getExpenses,
     addExpense,
@@ -17,27 +20,32 @@ const {
     updateSubscription
 } = require("../controllers/expensecontroller");
 
-// Transactions Routes
-router.get("/expenses", getExpenses);
-router.post("/expenses", addExpense);
-router.delete("/expenses/:id", deleteExpense);
-router.put("/expenses/:id", updateExpense);
-
-// Budgets Routes
-router.get("/budgets", getBudgets);
-router.post("/budgets", setBudget);
-router.delete("/budgets/:id", deleteBudget);
-
-// System Reset Route
-router.delete("/reset", resetDatabase);
+// Authentication Endpoints
+router.post("/auth/register", registerUser);
+router.post("/auth/login", loginUser);
+router.get("/auth/me", protect, getMe);
 
 // System Status Route
 router.get("/status", getStatus);
 
-// Subscriptions Routes
-router.get("/subscriptions", getSubscriptions);
-router.post("/subscriptions", addSubscription);
-router.delete("/subscriptions/:id", deleteSubscription);
-router.put("/subscriptions/:id", updateSubscription);
+// Transactions Routes (Protected)
+router.get("/expenses", protect, getExpenses);
+router.post("/expenses", protect, addExpense);
+router.delete("/expenses/:id", protect, deleteExpense);
+router.put("/expenses/:id", protect, updateExpense);
+
+// Budgets Routes (Protected)
+router.get("/budgets", protect, getBudgets);
+router.post("/budgets", protect, setBudget);
+router.delete("/budgets/:id", protect, deleteBudget);
+
+// System Reset Route (Protected)
+router.delete("/reset", protect, resetDatabase);
+
+// Subscriptions Routes (Protected)
+router.get("/subscriptions", protect, getSubscriptions);
+router.post("/subscriptions", protect, addSubscription);
+router.delete("/subscriptions/:id", protect, deleteSubscription);
+router.put("/subscriptions/:id", protect, updateSubscription);
 
 module.exports = router;

@@ -18,7 +18,12 @@ import {
   CheckCircle,
   Database,
   Tag,
-  FileText
+  FileText,
+  User,
+  LogOut,
+  Lock,
+  Mail,
+  ShieldCheck
 } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -103,6 +108,33 @@ function App() {
   const [subDueDate, setSubDueDate] = useState(new Date().toISOString().split('T')[0]);
   const [editingSub, setEditingSub] = useState(null);
 
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('finflow_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [authToken, setAuthToken] = useState(() => localStorage.getItem('finflow_token') || '');
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
+  const [authName, setAuthName] = useState('');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
+
+  // Helper for Auth Headers
+  const getAuthHeaders = () => {
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    return headers;
+  };
+
   // Trigger toast notification
   const addToast = (message, type = 'success') => {
     const id = Date.now();
@@ -112,10 +144,65 @@ function App() {
     }, 4000);
   };
 
+  // Authentication Handlers
+  const handleAuthSubmit = async (e) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError('');
+    try {
+      const endpoint = authMode === 'register' ? '/auth/register' : '/auth/login';
+      const body = authMode === 'register' 
+        ? { name: authName, email: authEmail, password: authPassword }
+        : { email: authEmail, password: authPassword };
+
+      const res = await fetch(`${API_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setAuthToken(data.token);
+        setCurrentUser(data.user);
+        localStorage.setItem('finflow_token', data.token);
+        localStorage.setItem('finflow_user', JSON.stringify(data.user));
+        addToast(authMode === 'register' ? 'Account created! Welcome to FinFlow.' : 'Logged in successfully!', 'success');
+        setShowAuthModal(false);
+        setAuthPassword('');
+        setAuthName('');
+        setAuthEmail('');
+        // Trigger data refetch for logged in user
+        fetchTransactions();
+        fetchSubscriptions();
+        getBudgets();
+      } else {
+        setAuthError(data.error || 'Authentication failed. Please try again.');
+      }
+    } catch (err) {
+      console.error(err);
+      setAuthError('Connection error. Please check server connection.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    setAuthToken('');
+    setCurrentUser(null);
+    localStorage.removeItem('finflow_token');
+    localStorage.removeItem('finflow_user');
+    addToast('Logged out successfully', 'info');
+    setShowProfileMenu(false);
+    setTransactions([]);
+    setBudgets([]);
+    setSubscriptions([]);
+  };
+
   // Fetch all transactions
   const fetchTransactions = async () => {
     try {
-      const res = await fetch(`${API_BASE}/expenses`);
+      const res = await fetch(`${API_BASE}/expenses`, { headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
         setTransactions(data.data);
@@ -129,19 +216,6 @@ function App() {
       setLoading(false);
     }
   };
-
-  // Fetch budgets
-  const [fetchBudgets, setFetchBudgets] = useState(() => async () => {
-    try {
-      const res = await fetch(`${API_BASE}/budgets`);
-      const data = await res.json();
-      if (data.success) {
-        setBudgets(data.data);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  });
 
   // Fetch DB Connection Status
   const fetchDbStatus = async () => {
@@ -159,7 +233,7 @@ function App() {
   // Fetch subscriptions
   const fetchSubscriptions = async () => {
     try {
-      const res = await fetch(`${API_BASE}/subscriptions`);
+      const res = await fetch(`${API_BASE}/subscriptions`, { headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
         setSubscriptions(data.data);
@@ -169,22 +243,22 @@ function App() {
     }
   };
 
+  const getBudgets = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/budgets`, { headers: getAuthHeaders() });
+      const data = await res.json();
+      if (data.success) setBudgets(data.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchTransactions();
-    // Call the unwrapped fetchBudgets
-    const getBudgets = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/budgets`);
-        const data = await res.json();
-        if (data.success) setBudgets(data.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
     getBudgets();
     fetchSubscriptions();
     fetchDbStatus();
-  }, []);
+  }, [authToken]);
 
   // Sync category select on type change
   useEffect(() => {
@@ -247,7 +321,7 @@ function App() {
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload)
       });
       const data = await res.json();
@@ -274,7 +348,7 @@ function App() {
   const handleDeleteTransaction = async (id) => {
     if (!window.confirm('Are you sure you want to delete this transaction?')) return;
     try {
-      const res = await fetch(`${API_BASE}/expenses/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/expenses/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
         addToast('Transaction deleted successfully', 'success');
@@ -299,7 +373,7 @@ function App() {
     try {
       const res = await fetch(`${API_BASE}/budgets`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           category: budgetCategory,
           limit: parseFloat(budgetLimit)
@@ -310,7 +384,7 @@ function App() {
         addToast(`Budget set for ${budgetCategory}`, 'success');
         setBudgetLimit('');
         setShowBudgetModal(false);
-        fetchBudgets();
+        getBudgets();
       } else {
         addToast(data.message || 'Failed to set budget', 'error');
       }
@@ -323,11 +397,11 @@ function App() {
   // Clear/delete budget
   const handleDeleteBudget = async (id, category) => {
     try {
-      const res = await fetch(`${API_BASE}/budgets/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/budgets/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
         addToast(`Budget removed for ${category}`, 'success');
-        fetchBudgets();
+        getBudgets();
       }
     } catch (err) {
       console.error(err);
@@ -362,7 +436,7 @@ function App() {
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload)
       });
       const data = await res.json();
@@ -812,39 +886,58 @@ function App() {
                 Load Demo Data
               </button>
             )}
-            <div className="profile-container" style={{ position: 'relative' }}>
-              <div 
-                className="user-profile" 
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
-                style={{ cursor: 'pointer', userSelect: 'none' }}
-              >
-                <div className="avatar">HJ</div>
-                <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Harshil</span>
-              </div>
-              {showProfileMenu && (
-                <div className="profile-dropdown glass-card">
-                  <div className="dropdown-profile-header">
-                    <div className="avatar large">HJ</div>
-                    <div>
-                      <div className="profile-name">Harshil Jain</div>
-                      <div className="profile-title">Full-Stack Candidate</div>
-                    </div>
+
+            {currentUser ? (
+              <div className="profile-container" style={{ position: 'relative' }}>
+                <div 
+                  className="user-profile" 
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  style={{ cursor: 'pointer', userSelect: 'none' }}
+                >
+                  <div className="avatar" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' }}>
+                    {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
                   </div>
-                  <div className="dropdown-divider"></div>
-                  <ul className="dropdown-menu-list">
-                    <li onClick={() => { setShowResumeModal(true); setShowProfileMenu(false); }}>
-                      🎓 View Placement Card
-                    </li>
-                    <li onClick={exportJSON}>
-                      💾 Export JSON Backup
-                    </li>
-                    <li onClick={handleResetDatabase} className="danger-action">
-                      ⚠️ Wipe Database
-                    </li>
-                  </ul>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{currentUser.name || 'User'}</span>
                 </div>
-              )}
-            </div>
+                {showProfileMenu && (
+                  <div className="profile-dropdown glass-card">
+                    <div className="dropdown-profile-header">
+                      <div className="avatar large" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' }}>
+                        {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                      <div>
+                        <div className="profile-name">{currentUser.name}</div>
+                        <div className="profile-title" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{currentUser.email}</div>
+                      </div>
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <ul className="dropdown-menu-list">
+                      <li onClick={() => { setShowResumeModal(true); setShowProfileMenu(false); }}>
+                        🎓 View Placement Card
+                      </li>
+                      <li onClick={exportJSON}>
+                        💾 Export JSON Backup
+                      </li>
+                      <li onClick={handleResetDatabase} className="danger-action">
+                        ⚠️ Wipe Database
+                      </li>
+                      <li onClick={handleLogout} style={{ color: 'var(--danger)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <LogOut size={15} /> Log Out
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button 
+                className="btn btn-primary" 
+                onClick={() => { setAuthMode('login'); setAuthError(''); setShowAuthModal(true); }}
+                style={{ gap: '6px', padding: '0.5rem 1rem' }}
+              >
+                <User size={16} />
+                Sign In / Register
+              </button>
+            )}
           </div>
         </header>
 
@@ -1703,6 +1796,173 @@ function App() {
               >
                 Close Profile Card
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Authentication Modal */}
+      {showAuthModal && (
+        <div className="modal-overlay">
+          <div className="glass-card modal-content" style={{ maxWidth: '420px', padding: '2rem' }}>
+            <div className="modal-header" style={{ marginBottom: '1.25rem' }}>
+              <div>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 700 }}>
+                  {authMode === 'login' ? 'Sign In to FinFlow' : 'Create Account'}
+                </h2>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                  {authMode === 'login' ? 'Access your personal cloud dashboard' : 'Join FinFlow to manage your finances safely'}
+                </p>
+              </div>
+              <button className="action-btn" onClick={() => setShowAuthModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Auth Mode Toggle Tabs */}
+            <div style={{ display: 'flex', background: 'rgba(0,0,0,0.25)', borderRadius: 'var(--border-radius-md)', padding: '4px', marginBottom: '1.5rem' }}>
+              <button 
+                type="button" 
+                onClick={() => { setAuthMode('login'); setAuthError(''); }}
+                style={{
+                  flex: 1,
+                  padding: '0.5rem',
+                  border: 'none',
+                  borderRadius: 'var(--border-radius-sm)',
+                  background: authMode === 'login' ? 'var(--primary)' : 'transparent',
+                  color: '#fff',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  transition: 'var(--transition-smooth)'
+                }}
+              >
+                Sign In
+              </button>
+              <button 
+                type="button" 
+                onClick={() => { setAuthMode('register'); setAuthError(''); }}
+                style={{
+                  flex: 1,
+                  padding: '0.5rem',
+                  border: 'none',
+                  borderRadius: 'var(--border-radius-sm)',
+                  background: authMode === 'register' ? 'var(--primary)' : 'transparent',
+                  color: '#fff',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  transition: 'var(--transition-smooth)'
+                }}
+              >
+                Register
+              </button>
+            </div>
+
+            {authError && (
+              <div style={{
+                background: 'var(--danger-glow)',
+                border: '1px solid var(--danger)',
+                color: 'var(--text-primary)',
+                padding: '0.75rem',
+                borderRadius: 'var(--border-radius-sm)',
+                fontSize: '0.85rem',
+                marginBottom: '1.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <AlertCircle size={16} style={{ color: 'var(--danger)', flexShrink: 0 }} />
+                <span>{authError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleAuthSubmit}>
+              {authMode === 'register' && (
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label className="form-label">Full Name</label>
+                  <div style={{ position: 'relative' }}>
+                    <User size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                    <input 
+                      type="text" 
+                      className="glass-input" 
+                      style={{ paddingLeft: '2.4rem' }}
+                      placeholder="e.g. Harshil Jain"
+                      required
+                      value={authName}
+                      onChange={(e) => setAuthName(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label">Email Address</label>
+                <div style={{ position: 'relative' }}>
+                  <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                  <input 
+                    type="email" 
+                    className="glass-input" 
+                    style={{ paddingLeft: '2.4rem' }}
+                    placeholder="name@example.com"
+                    required
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <label className="form-label">Password</label>
+                <div style={{ position: 'relative' }}>
+                  <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                  <input 
+                    type="password" 
+                    className="glass-input" 
+                    style={{ paddingLeft: '2.4rem' }}
+                    placeholder="••••••••"
+                    required
+                    minLength={6}
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <button 
+                type="submit" 
+                className="btn btn-primary" 
+                disabled={authLoading}
+                style={{ width: '100%', justifyContent: 'center', padding: '0.75rem' }}
+              >
+                {authLoading 
+                  ? 'Processing...' 
+                  : authMode === 'login' ? 'Sign In to Account' : 'Create My Account'}
+              </button>
+            </form>
+
+            <div style={{ textAlign: 'center', marginTop: '1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              {authMode === 'login' ? (
+                <>
+                  Don't have an account?{' '}
+                  <span 
+                    onClick={() => { setAuthMode('register'); setAuthError(''); }}
+                    style={{ color: 'var(--primary)', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Register here
+                  </span>
+                </>
+              ) : (
+                <>
+                  Already have an account?{' '}
+                  <span 
+                    onClick={() => { setAuthMode('login'); setAuthError(''); }}
+                    style={{ color: 'var(--primary)', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Sign in here
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </div>

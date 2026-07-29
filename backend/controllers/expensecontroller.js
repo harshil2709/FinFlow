@@ -49,6 +49,9 @@ const getExpenses = async (req, res) => {
         if (getIsConnected()) {
             const { type, category, search, startDate, endDate } = req.query;
             let query = {};
+            if (req.user && req.user.id && req.user.id !== 'guest_user_id') {
+                query.user = req.user.id;
+            }
 
             if (type) query.type = type;
             if (category) query.category = category;
@@ -123,14 +126,18 @@ const addExpense = async (req, res) => {
         }
 
         if (getIsConnected()) {
-            const expense = await Expense.create({
+            const newExpenseData = {
                 title,
                 amount,
                 type,
                 category,
                 date: date || undefined,
                 description
-            });
+            };
+            if (req.user && req.user.id && req.user.id !== 'guest_user_id') {
+                newExpenseData.user = req.user.id;
+            }
+            const expense = await Expense.create(newExpenseData);
             res.status(201).json({
                 success: true,
                 data: expense
@@ -273,7 +280,11 @@ const updateExpense = async (req, res) => {
 const getBudgets = async (req, res) => {
     try {
         if (getIsConnected()) {
-            const budgets = await Budget.find({});
+            let filter = {};
+            if (req.user && req.user.id && req.user.id !== 'guest_user_id') {
+                filter.user = req.user.id;
+            }
+            const budgets = await Budget.find(filter);
             res.status(200).json({
                 success: true,
                 data: budgets
@@ -307,9 +318,16 @@ const setBudget = async (req, res) => {
         }
 
         if (getIsConnected()) {
+            let filter = { category };
+            let updateData = { category, limit };
+            if (req.user && req.user.id && req.user.id !== 'guest_user_id') {
+                filter.user = req.user.id;
+                updateData.user = req.user.id;
+            }
+
             const budget = await Budget.findOneAndUpdate(
-                { category },
-                { limit },
+                filter,
+                updateData,
                 { new: true, upsert: true, runValidators: true }
             );
             res.status(200).json({
@@ -435,7 +453,11 @@ const getStatus = async (req, res) => {
 const getSubscriptions = async (req, res) => {
     try {
         if (getIsConnected()) {
-            const subscriptions = await Subscription.find({}).sort({ nextDueDate: 1 });
+            let filter = {};
+            if (req.user && req.user.id && req.user.id !== 'guest_user_id') {
+                filter.user = req.user.id;
+            }
+            const subscriptions = await Subscription.find(filter).sort({ nextDueDate: 1 });
             res.status(200).json({
                 success: true,
                 count: subscriptions.length,
@@ -463,22 +485,26 @@ const addSubscription = async (req, res) => {
     try {
         const { title, amount, billingCycle, category, nextDueDate, status } = req.body;
 
-        if (!title || amount === undefined || !billingCycle || !category || !nextDueDate) {
+        if (!title || !amount || !billingCycle || !category || !nextDueDate) {
             return res.status(400).json({
                 success: false,
-                message: "Please fill in all required fields"
+                message: "Please provide title, amount, billingCycle, category, and nextDueDate"
             });
         }
 
         if (getIsConnected()) {
-            const subscription = await Subscription.create({
+            const subData = {
                 title,
                 amount,
                 billingCycle,
                 category,
                 nextDueDate,
                 status: status || "active"
-            });
+            };
+            if (req.user && req.user.id && req.user.id !== 'guest_user_id') {
+                subData.user = req.user.id;
+            }
+            const subscription = await Subscription.create(subData);
             res.status(201).json({
                 success: true,
                 data: subscription
