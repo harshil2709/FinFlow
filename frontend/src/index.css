@@ -1,12 +1,12 @@
 :root {
-  --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #020617 100%);
-  --card-bg: rgba(30, 41, 59, 0.45);
+  --bg-gradient: linear-gradient(135deg, #09090b 0%, #171320 40%, #0d0d12 100%);
+  --card-bg: rgba(24, 24, 27, 0.55);
   --card-border: rgba(255, 255, 255, 0.08);
-  --card-hover-border: rgba(99, 102, 241, 0.4);
+  --card-hover-border: rgba(224, 169, 109, 0.4);
   
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --primary-glow: rgba(99, 102, 241, 0.25);
+  --primary: #e0a96d;
+  --primary-hover: #d49553;
+  --primary-glow: rgba(224, 169, 109, 0.25);
   
   --success: #10b981;
   --success-glow: rgba(16, 185, 129, 0.15);
@@ -14,9 +14,9 @@
   --danger: #f43f5e;
   --danger-glow: rgba(244, 63, 94, 0.15);
   
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
   
   --font-main: 'Outfit', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -67,7 +67,7 @@ body {
 /* Sidebar Styling */
 .sidebar {
   width: 260px;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(18, 18, 22, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-right: 1px solid var(--card-border);
@@ -88,7 +88,7 @@ body {
 }
 
 .brand-logo {
-  background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #f43f5e 100%);
   width: 40px;
   height: 40px;
   border-radius: var(--border-radius-md);
@@ -102,7 +102,7 @@ body {
   font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.5px;
-  background: linear-gradient(to right, #ffffff, #c7d2fe);
+  background: linear-gradient(to right, #ffffff, #f5d0a9);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -135,9 +135,9 @@ body {
 
 .nav-item.active {
   color: var(--text-primary);
-  background: rgba(99, 102, 241, 0.15);
-  border-color: rgba(99, 102, 241, 0.25);
-  box-shadow: inset 0 0 10px rgba(99, 102, 241, 0.05);
+  background: rgba(224, 169, 109, 0.15);
+  border-color: rgba(224, 169, 109, 0.3);
+  box-shadow: inset 0 0 10px rgba(224, 169, 109, 0.05);
 }
 
 .sidebar-footer {

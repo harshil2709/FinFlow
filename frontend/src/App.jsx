@@ -709,15 +709,15 @@ function App() {
           label: 'Expenses by Category',
           data,
           backgroundColor: [
-            '#6366f1', // Indigo
-            '#10b981', // Emerald
-            '#f43f5e', // Rose
-            '#f59e0b', // Amber
-            '#06b6d4', // Cyan
-            '#8b5cf6', // Violet
-            '#ec4899', // Pink
-            '#3b82f6', // Blue
-            '#94a3b8'  // Slate
+            '#e0a96d', // Luxe Rose Gold
+            '#10b981', // Emerald Green
+            '#f43f5e', // Rose Red
+            '#fbbf24', // Amber Gold
+            '#a855f7', // Amethyst Violet
+            '#e11d48', // Crimson
+            '#34d399', // Mint
+            '#f472b6', // Pink
+            '#71717a'  // Obsidian Slate
           ],
           borderWidth: 1,
           borderColor: 'rgba(255, 255, 255, 0.08)'
