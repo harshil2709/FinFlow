@@ -23,7 +23,14 @@ import {
   LogOut,
   Lock,
   Mail,
-  ShieldCheck
+  ShieldCheck,
+  Target,
+  Sparkles,
+  FileSpreadsheet,
+  PlusCircle,
+  Award,
+  Zap,
+  PiggyBank
 } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -107,6 +114,18 @@ function App() {
   const [subCategory, setSubCategory] = useState('Entertainment');
   const [subDueDate, setSubDueDate] = useState(new Date().toISOString().split('T')[0]);
   const [editingSub, setEditingSub] = useState(null);
+
+  // Savings Goals State
+  const [goals, setGoals] = useState([]);
+  const [showGoalModal, setShowGoalModal] = useState(false);
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState(null);
+  const [goalTitle, setGoalTitle] = useState('');
+  const [goalTarget, setGoalTarget] = useState('');
+  const [goalCurrent, setGoalCurrent] = useState('');
+  const [goalDate, setGoalDate] = useState(new Date().toISOString().split('T')[0]);
+  const [goalCategory, setGoalCategory] = useState('Savings');
+  const [depositAmount, setDepositAmount] = useState('');
 
   // Authentication State
   const [currentUser, setCurrentUser] = useState(() => {
@@ -230,33 +249,133 @@ function App() {
     }
   };
 
-  // Fetch subscriptions
-  const fetchSubscriptions = async () => {
+  // Fetch Savings Goals
+  const fetchGoals = async () => {
     try {
-      const res = await fetch(`${API_BASE}/subscriptions`, { headers: getAuthHeaders() });
+      const res = await fetch(`${API_BASE}/goals`, { headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
-        setSubscriptions(data.data);
+        setGoals(data.data);
       }
     } catch (err) {
       console.error(err);
     }
   };
 
-  const getBudgets = async () => {
+  // Submit Goal Handler
+  const handleSubmitGoal = async (e) => {
+    e.preventDefault();
+    if (!goalTitle || !goalTarget || !goalDate) {
+      addToast('Please fill in all required goal fields', 'error');
+      return;
+    }
+
+    const payload = {
+      title: goalTitle,
+      targetAmount: parseFloat(goalTarget),
+      currentAmount: goalCurrent ? parseFloat(goalCurrent) : 0,
+      targetDate: goalDate,
+      category: goalCategory || 'Savings'
+    };
+
     try {
-      const res = await fetch(`${API_BASE}/budgets`, { headers: getAuthHeaders() });
+      const res = await fetch(`${API_BASE}/goals`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+      });
       const data = await res.json();
-      if (data.success) setBudgets(data.data);
+      if (data.success) {
+        addToast(`Savings goal "${goalTitle}" added!`, 'success');
+        setShowGoalModal(false);
+        setGoalTitle('');
+        setGoalTarget('');
+        setGoalCurrent('');
+        fetchGoals();
+      } else {
+        addToast(data.message || 'Failed to add goal', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      addToast('Network error, try again', 'error');
+    }
+  };
+
+  // Deposit towards Goal
+  const handleDepositGoal = async (e) => {
+    e.preventDefault();
+    if (!selectedGoal || !depositAmount || parseFloat(depositAmount) <= 0) {
+      addToast('Please enter a valid deposit amount', 'error');
+      return;
+    }
+
+    const newAmount = selectedGoal.currentAmount + parseFloat(depositAmount);
+    try {
+      const res = await fetch(`${API_BASE}/goals/${selectedGoal._id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ currentAmount: newAmount })
+      });
+      const data = await res.json();
+      if (data.success) {
+        addToast(`Deposited ₹${parseFloat(depositAmount).toLocaleString('en-IN')} towards ${selectedGoal.title}!`, 'success');
+        setShowDepositModal(false);
+        setDepositAmount('');
+        setSelectedGoal(null);
+        fetchGoals();
+      }
     } catch (err) {
       console.error(err);
     }
+  };
+
+  // Delete Goal
+  const handleDeleteGoal = async (id, title) => {
+    if (!window.confirm(`Are you sure you want to delete goal "${title}"?`)) return;
+    try {
+      const res = await fetch(`${API_BASE}/goals/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+      const data = await res.json();
+      if (data.success) {
+        addToast(`Goal "${title}" removed`, 'success');
+        fetchGoals();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Export Transactions as CSV Statement
+  const exportCSV = () => {
+    if (filteredTransactions.length === 0) {
+      addToast('No transaction data to export', 'error');
+      return;
+    }
+    const headers = ['Date', 'Title', 'Type', 'Category', 'Amount (INR)', 'Description'];
+    const rows = filteredTransactions.map((t) => [
+      new Date(t.date).toISOString().split('T')[0],
+      `"${t.title.replace(/"/g, '""')}"`,
+      t.type,
+      `"${t.category}"`,
+      t.amount,
+      `"${(t.description || '').replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `FinFlow_Statement_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    addToast('Downloaded CSV Financial Statement', 'success');
   };
 
   useEffect(() => {
     fetchTransactions();
     getBudgets();
     fetchSubscriptions();
+    fetchGoals();
     fetchDbStatus();
   }, [authToken]);
 
@@ -584,35 +703,7 @@ function App() {
     }
   };
 
-  // CSV Export utility
-  const exportCSV = () => {
-    if (filteredTransactions.length === 0) {
-      addToast('No data to export', 'error');
-      return;
-    }
 
-    const headers = ['Date', 'Title', 'Type', 'Category', 'Amount', 'Description'];
-    const rows = filteredTransactions.map(t => [
-      new Date(t.date).toLocaleDateString(),
-      `"${t.title.replace(/"/g, '""')}"`,
-      t.type,
-      t.category,
-      t.amount,
-      `"${(t.description || '').replace(/"/g, '""')}"`
-    ]);
-
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `FinFlow_Transactions_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    addToast('Downloaded transactions CSV', 'success');
-  };
 
   // Export database as JSON backup
   const exportJSON = () => {
@@ -783,6 +874,64 @@ function App() {
     return totals;
   }, [transactions]);
 
+  // AI Smart Insights computation
+  const aiInsights = useMemo(() => {
+    let score = 85;
+    const tips = [];
+    const { income, expenses } = computedStats;
+
+    if (transactions.length === 0) {
+      return {
+        score: 100,
+        status: 'Optimal',
+        tips: ['Add transactions or load demo data to view personalized AI financial recommendations.']
+      };
+    }
+
+    if (expenses > income && income > 0) {
+      score -= 25;
+      tips.push('Deficit Warning: Monthly expenses currently exceed total income. Consider pausing non-essential recurring payments.');
+    } else if (income > 0) {
+      const savingsRate = Math.round(((income - expenses) / income) * 100);
+      if (savingsRate >= 30) {
+        score += 10;
+        tips.push(`Strong Savings Velocity: You are saving ${savingsRate}% of total income this period!`);
+      } else if (savingsRate < 10) {
+        score -= 10;
+        tips.push(`Savings Rate Notice: Your savings rate is ${savingsRate}%. Target 20%+ for long-term health.`);
+      }
+    }
+
+    const catTotals = {};
+    transactions.forEach(t => {
+      if (t.type === 'expense') {
+        catTotals[t.category] = (catTotals[t.category] || 0) + t.amount;
+      }
+    });
+
+    const topCategory = Object.keys(catTotals).sort((a, b) => catTotals[b] - catTotals[a])[0];
+    if (topCategory && expenses > 0) {
+      const pct = Math.round((catTotals[topCategory] / expenses) * 100);
+      tips.push(`Top Expense Area: ${topCategory} represents ${pct}% of total spending.`);
+    }
+
+    const activeSubCount = subscriptions.filter(s => s.status === 'active').length;
+    if (activeSubCount > 0) {
+      tips.push(`Recurring Liabilities: ${activeSubCount} active auto-debit payments are actively scheduled.`);
+    }
+
+    const clampedScore = Math.min(100, Math.max(40, score));
+    let status = 'Excellent';
+    if (clampedScore < 60) status = 'Needs Attention';
+    else if (clampedScore < 80) status = 'Good';
+
+    return {
+      score: clampedScore,
+      status,
+      tips
+    };
+  }, [computedStats, transactions, subscriptions]);
+
   return (
     <div className="app-container">
       {/* Toast Notifications */}
@@ -835,6 +984,13 @@ function App() {
             <Calendar size={18} />
             Subscriptions
           </li>
+          <li 
+            className={`nav-item ${activeTab === 'goals' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('goals'); setIsSidebarOpen(false); }}
+          >
+            <Target size={18} />
+            Savings Goals
+          </li>
         </ul>
 
         <div className="sidebar-footer">
@@ -870,12 +1026,14 @@ function App() {
               {activeTab === 'transactions' && 'Transaction Log'}
               {activeTab === 'budgets' && 'Budgets & Limits'}
               {activeTab === 'subscriptions' && 'Auto-Debit Subscriptions'}
+              {activeTab === 'goals' && 'Savings Goals & Target Milestones'}
             </h1>
             <p>
               {activeTab === 'dashboard' && 'Real-time overview of your income, expenses, and category budgets'}
               {activeTab === 'transactions' && 'View, search, edit, and export your transaction history'}
               {activeTab === 'budgets' && 'Define limits per expense category to monitor and curb spending'}
               {activeTab === 'subscriptions' && 'Monitor and manage monthly auto-debit payments and upcoming bills'}
+              {activeTab === 'goals' && 'Track progress towards your savings targets and milestone allocations'}
             </p>
           </div>
 
@@ -981,6 +1139,28 @@ function App() {
                     <div className="stat-icon">
                       <TrendingDown size={24} />
                     </div>
+                  </div>
+                </div>
+
+                {/* AI Financial Coach Card */}
+                <div className="glass-card" style={{ marginBottom: '2rem', border: '1px solid rgba(224, 169, 109, 0.3)', background: 'linear-gradient(135deg, rgba(224, 169, 109, 0.08) 0%, rgba(24, 24, 27, 0.6) 100%)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Sparkles size={20} style={{ color: 'var(--primary)' }} />
+                      <h2 style={{ fontSize: '1.15rem', fontWeight: 700 }}>FinFlow AI Advisor & Health Index</h2>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(224, 169, 109, 0.15)', padding: '0.35rem 0.85rem', borderRadius: '20px', border: '1px solid rgba(224, 169, 109, 0.3)' }}>
+                      <Award size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary)' }}>Health Score: {aiInsights.score}/100 ({aiInsights.status})</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                    {aiInsights.tips.map((tip, idx) => (
+                      <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '0.88rem', color: 'var(--text-primary)', background: 'rgba(255,255,255,0.02)', padding: '0.6rem 0.85rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--card-border)' }}>
+                        <Zap size={16} style={{ color: 'var(--primary)', flexShrink: 0, marginTop: '2px' }} />
+                        <span>{tip}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -1476,6 +1656,75 @@ function App() {
                 </div>
               </div>
             )}
+
+            {/* Savings Goals Tab */}
+            {activeTab === 'goals' && (
+              <div className="fade-in">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div>
+                    <h2 style={{ fontSize: '1.4rem', fontWeight: 700 }}>Financial Savings Goals</h2>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Track custom savings milestones, target dates, and deposit progress</p>
+                  </div>
+                  <button className="btn btn-primary" onClick={() => { setGoalTitle(''); setGoalTarget(''); setGoalCurrent(''); setGoalDate(new Date().toISOString().split('T')[0]); setShowGoalModal(true); }}>
+                    <Plus size={16} /> New Savings Goal
+                  </button>
+                </div>
+
+                {goals.length === 0 ? (
+                  <div className="glass-card empty-state" style={{ padding: '3rem 1.5rem' }}>
+                    <PiggyBank size={48} style={{ color: 'var(--primary)', opacity: 0.8, marginBottom: '1rem' }} />
+                    <h3>No active savings goals found</h3>
+                    <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                      Create a target goal (e.g. Emergency Fund, Laptop, Travel) to track your savings milestones.
+                    </p>
+                    <button className="btn btn-primary" style={{ marginTop: '1.25rem' }} onClick={() => setShowGoalModal(true)}>
+                      <Plus size={16} /> Create Goal Now
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
+                    {goals.map((g) => {
+                      const pct = Math.min(Math.round((g.currentAmount / g.targetAmount) * 100), 100);
+                      const daysLeft = Math.ceil((new Date(g.targetDate) - new Date()) / (1000 * 60 * 60 * 24));
+                      return (
+                        <div key={g._id} className="glass-card" style={{ border: '1px solid var(--card-border)', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                              <div>
+                                <span className="badge badge-income" style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{g.category || 'Savings'}</span>
+                                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '0.35rem' }}>{g.title}</h3>
+                              </div>
+                              <button className="action-btn delete" onClick={() => handleDeleteGoal(g._id, g.title)}>
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
+                              <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)' }}>₹{g.currentAmount.toLocaleString()}</span>
+                              <span style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>Target: ₹{g.targetAmount.toLocaleString()}</span>
+                            </div>
+
+                            {/* Progress Bar */}
+                            <div className="progress-bar-container" style={{ height: '10px', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', overflow: 'hidden', marginBottom: '0.85rem' }}>
+                              <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, var(--primary) 0%, #f43f5e 100%)', borderRadius: '10px', transition: 'var(--transition-smooth)' }}></div>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                              <span>{pct}% Completed</span>
+                              <span>{daysLeft > 0 ? `${daysLeft} days left` : 'Target Date Reached'}</span>
+                            </div>
+                          </div>
+
+                          <button className="btn btn-outline" style={{ width: '100%', marginTop: '1.25rem', justifyContent: 'center', gap: '6px' }} onClick={() => { setSelectedGoal(g); setDepositAmount(''); setShowDepositModal(true); }}>
+                            <PlusCircle size={16} /> Deposit Funds
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </>
         )}
       </main>
@@ -1964,6 +2213,142 @@ function App() {
                 </>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Savings Goal Modal */}
+      {showGoalModal && (
+        <div className="modal-overlay">
+          <div className="glass-card modal-content" style={{ maxWidth: '440px' }}>
+            <div className="modal-header">
+              <h2>New Savings Goal</h2>
+              <button className="action-btn" onClick={() => setShowGoalModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitGoal}>
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label">Goal Title</label>
+                <input 
+                  type="text" 
+                  className="glass-input" 
+                  placeholder="e.g. Emergency Fund, New Laptop"
+                  required
+                  value={goalTitle}
+                  onChange={(e) => setGoalTitle(e.target.value)}
+                />
+              </div>
+
+              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Target Amount (₹)</label>
+                  <input 
+                    type="number" 
+                    className="glass-input" 
+                    placeholder="e.g. 50000"
+                    required
+                    min="1"
+                    value={goalTarget}
+                    onChange={(e) => setGoalTarget(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Starting Balance (₹)</label>
+                  <input 
+                    type="number" 
+                    className="glass-input" 
+                    placeholder="0"
+                    min="0"
+                    value={goalCurrent}
+                    onChange={(e) => setGoalCurrent(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Target Date</label>
+                  <input 
+                    type="date" 
+                    className="glass-input" 
+                    required
+                    value={goalDate}
+                    onChange={(e) => setGoalDate(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Category</label>
+                  <select 
+                    className="glass-input" 
+                    value={goalCategory} 
+                    onChange={(e) => setGoalCategory(e.target.value)}
+                  >
+                    <option value="Savings">Savings</option>
+                    <option value="Gadgets">Gadgets</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Emergency">Emergency</option>
+                    <option value="Vehicle">Vehicle</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setShowGoalModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Create Goal
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Deposit Funds Modal */}
+      {showDepositModal && selectedGoal && (
+        <div className="modal-overlay">
+          <div className="glass-card modal-content" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h2>Deposit Funds</h2>
+              <button className="action-btn" onClick={() => setShowDepositModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ marginBottom: '1.25rem' }}>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Add funds to <strong style={{ color: 'var(--text-primary)' }}>{selectedGoal.title}</strong></p>
+              <div style={{ fontSize: '0.85rem', color: 'var(--primary)', marginTop: '4px' }}>
+                Current Progress: ₹{selectedGoal.currentAmount.toLocaleString()} / ₹{selectedGoal.targetAmount.toLocaleString()}
+              </div>
+            </div>
+
+            <form onSubmit={handleDepositGoal}>
+              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <label className="form-label">Deposit Amount (₹)</label>
+                <input 
+                  type="number" 
+                  className="glass-input" 
+                  placeholder="e.g. 2500"
+                  required
+                  min="1"
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setShowDepositModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Confirm Deposit
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

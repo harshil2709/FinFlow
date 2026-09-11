@@ -17,7 +17,11 @@ const {
     getSubscriptions,
     addSubscription,
     deleteSubscription,
-    updateSubscription
+    updateSubscription,
+    getGoals,
+    addGoal,
+    deleteGoal,
+    updateGoal
 } = require("../controllers/expensecontroller");
 
 // Authentication Endpoints
@@ -47,5 +51,11 @@ router.get("/subscriptions", protect, getSubscriptions);
 router.post("/subscriptions", protect, addSubscription);
 router.delete("/subscriptions/:id", protect, deleteSubscription);
 router.put("/subscriptions/:id", protect, updateSubscription);
+
+// Savings Goals Routes (Protected)
+router.get("/goals", protect, getGoals);
+router.post("/goals", protect, addGoal);
+router.delete("/goals/:id", protect, deleteGoal);
+router.put("/goals/:id", protect, updateGoal);
 
 module.exports = router;

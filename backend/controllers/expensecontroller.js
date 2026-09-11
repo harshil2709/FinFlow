@@ -1,6 +1,7 @@
 const Expense = require("../models/Expense");
 const Budget = require("../models/Budget");
 const Subscription = require("../models/Subscription");
+const Goal = require("../models/Goal");
 const { getIsConnected } = require("../config/db");
 const fs = require("fs");
 const path = require("path");
@@ -10,6 +11,7 @@ const DATA_DIR = path.join(__dirname, "../data");
 const EXPENSES_FILE = path.join(DATA_DIR, "expenses.json");
 const BUDGETS_FILE = path.join(DATA_DIR, "budgets.json");
 const SUBSCRIPTIONS_FILE = path.join(DATA_DIR, "subscriptions.json");
+const GOALS_FILE = path.join(DATA_DIR, "goals.json");
 
 // Ensure data files and folders exist for JSON fallback mode
 const ensureLocalDB = () => {
@@ -24,6 +26,9 @@ const ensureLocalDB = () => {
     }
     if (!fs.existsSync(SUBSCRIPTIONS_FILE)) {
         fs.writeFileSync(SUBSCRIPTIONS_FILE, JSON.stringify([]));
+    }
+    if (!fs.existsSync(GOALS_FILE)) {
+        fs.writeFileSync(GOALS_FILE, JSON.stringify([]));
     }
 };
 
@@ -422,10 +427,12 @@ const resetDatabase = async (req, res) => {
             await Expense.deleteMany({});
             await Budget.deleteMany({});
             await Subscription.deleteMany({});
+            await Goal.deleteMany({});
         } else {
             writeLocalData(EXPENSES_FILE, []);
             writeLocalData(BUDGETS_FILE, []);
             writeLocalData(SUBSCRIPTIONS_FILE, []);
+            writeLocalData(GOALS_FILE, []);
         }
         res.status(200).json({
             success: true,
@@ -625,6 +632,181 @@ const updateSubscription = async (req, res) => {
     }
 };
 
+// --- Savings Goal Controllers ---
+
+const getGoals = async (req, res) => {
+    try {
+        if (getIsConnected()) {
+            let filter = {};
+            if (req.user && req.user.id && req.user.id !== 'guest_user_id') {
+                filter.user = req.user.id;
+            }
+            const goals = await Goal.find(filter).sort({ targetDate: 1 });
+            res.status(200).json({
+                success: true,
+                count: goals.length,
+                data: goals
+            });
+        } else {
+            const goals = readLocalData(GOALS_FILE);
+            goals.sort((a, b) => new Date(a.targetDate) - new Date(b.targetDate));
+            res.status(200).json({
+                success: true,
+                count: goals.length,
+                data: goals
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error: error.message
+        });
+    }
+};
+
+const addGoal = async (req, res) => {
+    try {
+        const { title, targetAmount, currentAmount, targetDate, category } = req.body;
+
+        if (!title || !targetAmount || !targetDate) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide title, targetAmount, and targetDate"
+            });
+        }
+
+        if (getIsConnected()) {
+            const goalData = {
+                title,
+                targetAmount: parseFloat(targetAmount),
+                currentAmount: currentAmount ? parseFloat(currentAmount) : 0,
+                targetDate,
+                category: category || "Savings"
+            };
+            if (req.user && req.user.id && req.user.id !== 'guest_user_id') {
+                goalData.user = req.user.id;
+            }
+            const goal = await Goal.create(goalData);
+            res.status(201).json({
+                success: true,
+                data: goal
+            });
+        } else {
+            const goals = readLocalData(GOALS_FILE);
+            const newGoal = {
+                _id: Date.now().toString(),
+                title,
+                targetAmount: parseFloat(targetAmount),
+                currentAmount: currentAmount ? parseFloat(currentAmount) : 0,
+                targetDate,
+                category: category || "Savings",
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            goals.push(newGoal);
+            writeLocalData(GOALS_FILE, goals);
+            res.status(201).json({
+                success: true,
+                data: newGoal
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error: error.message
+        });
+    }
+};
+
+const updateGoal = async (req, res) => {
+    try {
+        if (getIsConnected()) {
+            let goal = await Goal.findById(req.params.id);
+            if (!goal) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Savings goal not found"
+                });
+            }
+            goal = await Goal.findByIdAndUpdate(req.params.id, req.body, {
+                new: true,
+                runValidators: true
+            });
+            res.status(200).json({
+                success: true,
+                data: goal
+            });
+        } else {
+            let goals = readLocalData(GOALS_FILE);
+            const index = goals.findIndex((g) => g._id === req.params.id);
+            if (index === -1) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Savings goal not found"
+                });
+            }
+            goals[index] = {
+                ...goals[index],
+                ...req.body,
+                updatedAt: new Date().toISOString()
+            };
+            writeLocalData(GOALS_FILE, goals);
+            res.status(200).json({
+                success: true,
+                data: goals[index]
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error: error.message
+        });
+    }
+};
+
+const deleteGoal = async (req, res) => {
+    try {
+        if (getIsConnected()) {
+            const goal = await Goal.findById(req.params.id);
+            if (!goal) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Savings goal not found"
+                });
+            }
+            await goal.deleteOne();
+            res.status(200).json({
+                success: true,
+                data: {}
+            });
+        } else {
+            let goals = readLocalData(GOALS_FILE);
+            const exists = goals.some((g) => g._id === req.params.id);
+            if (!exists) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Savings goal not found"
+                });
+            }
+            goals = goals.filter((g) => g._id !== req.params.id);
+            writeLocalData(GOALS_FILE, goals);
+            res.status(200).json({
+                success: true,
+                data: {}
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getExpenses,
     addExpense,
@@ -638,5 +820,9 @@ module.exports = {
     getSubscriptions,
     addSubscription,
     deleteSubscription,
-    updateSubscription
+    updateSubscription,
+    getGoals,
+    addGoal,
+    updateGoal,
+    deleteGoal
 };
