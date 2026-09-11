@@ -531,9 +531,12 @@ function App() {
     formData.append('receipt', file);
 
     try {
+      const headers = { ...getAuthHeaders() };
+      delete headers['Content-Type']; // Crucial: Remove application/json so browser sets multipart/form-data boundary automatically
+
       const res = await fetch(`${API_BASE}/ai/scan-receipt`, {
         method: 'POST',
-        headers: { ...getAuthHeaders() }, // Multer sets multipart boundary automatically
+        headers,
         body: formData
       });
 
