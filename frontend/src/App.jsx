@@ -16,6 +16,7 @@ import {
   DollarSign, 
   AlertCircle, 
   CheckCircle,
+  Info,
   Database,
   Tag,
   FileText,
@@ -204,6 +205,15 @@ function App() {
     } finally {
       setAuthLoading(false);
     }
+  };
+
+  const openAuthModal = (mode = 'login') => {
+    setAuthMode(mode);
+    setAuthName('');
+    setAuthEmail('');
+    setAuthPassword('');
+    setAuthError('');
+    setShowAuthModal(true);
   };
 
   const handleLogout = () => {
@@ -973,11 +983,9 @@ function App() {
       <div className="toast-container">
         {toasts.map((toast) => (
           <div key={toast.id} className={`toast ${toast.type}`}>
-            {toast.type === 'success' ? (
-              <CheckCircle size={18} style={{ color: 'var(--success)' }} />
-            ) : (
-              <AlertCircle size={18} style={{ color: 'var(--danger)' }} />
-            )}
+            {toast.type === 'success' && <CheckCircle size={18} style={{ color: 'var(--success)' }} />}
+            {toast.type === 'info' && <Info size={18} style={{ color: 'var(--primary)' }} />}
+            {toast.type === 'error' && <AlertCircle size={18} style={{ color: 'var(--danger)' }} />}
             <span>{toast.message}</span>
           </div>
         ))}
@@ -1124,7 +1132,7 @@ function App() {
             ) : (
               <button 
                 className="btn btn-primary" 
-                onClick={() => { setAuthMode('login'); setAuthError(''); setShowAuthModal(true); }}
+                onClick={() => openAuthModal('login')}
                 style={{ gap: '6px', padding: '0.5rem 1rem' }}
               >
                 <User size={16} />
@@ -2107,7 +2115,7 @@ function App() {
             <div style={{ display: 'flex', background: 'rgba(0,0,0,0.25)', borderRadius: 'var(--border-radius-md)', padding: '4px', marginBottom: '1.5rem' }}>
               <button 
                 type="button" 
-                onClick={() => { setAuthMode('login'); setAuthError(''); }}
+                onClick={() => openAuthModal('login')}
                 style={{
                   flex: 1,
                   padding: '0.5rem',
@@ -2125,7 +2133,7 @@ function App() {
               </button>
               <button 
                 type="button" 
-                onClick={() => { setAuthMode('register'); setAuthError(''); }}
+                onClick={() => openAuthModal('register')}
                 style={{
                   flex: 1,
                   padding: '0.5rem',
@@ -2161,7 +2169,7 @@ function App() {
               </div>
             )}
 
-            <form onSubmit={handleAuthSubmit}>
+            <form onSubmit={handleAuthSubmit} autoComplete="off">
               {authMode === 'register' && (
                 <div className="form-group" style={{ marginBottom: '1rem' }}>
                   <label className="form-label">Full Name</label>
@@ -2171,7 +2179,8 @@ function App() {
                       type="text" 
                       className="glass-input" 
                       style={{ paddingLeft: '2.4rem' }}
-                      placeholder="e.g. Harshil Jain"
+                      placeholder="Enter your full name"
+                      autoComplete="off"
                       required
                       value={authName}
                       onChange={(e) => setAuthName(e.target.value)}
@@ -2189,6 +2198,7 @@ function App() {
                     className="glass-input" 
                     style={{ paddingLeft: '2.4rem' }}
                     placeholder="name@example.com"
+                    autoComplete="off"
                     required
                     value={authEmail}
                     onChange={(e) => setAuthEmail(e.target.value)}
@@ -2205,6 +2215,7 @@ function App() {
                     className="glass-input" 
                     style={{ paddingLeft: '2.4rem' }}
                     placeholder="••••••••"
+                    autoComplete="new-password"
                     required
                     minLength={6}
                     value={authPassword}
@@ -2230,7 +2241,7 @@ function App() {
                 <>
                   Don't have an account?{' '}
                   <span 
-                    onClick={() => { setAuthMode('register'); setAuthError(''); }}
+                    onClick={() => openAuthModal('register')}
                     style={{ color: 'var(--primary)', fontWeight: 600, cursor: 'pointer' }}
                   >
                     Register here
@@ -2240,7 +2251,7 @@ function App() {
                 <>
                   Already have an account?{' '}
                   <span 
-                    onClick={() => { setAuthMode('login'); setAuthError(''); }}
+                    onClick={() => openAuthModal('login')}
                     style={{ color: 'var(--primary)', fontWeight: 600, cursor: 'pointer' }}
                   >
                     Sign in here

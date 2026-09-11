@@ -373,6 +373,16 @@ body {
   border-color: var(--danger);
 }
 
+/* Prevent Chrome/Edge Autofill Light Blue Background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #fafafa !important;
+  -webkit-box-shadow: 0 0 0px 1000px #18181b inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 /* Transaction List & Table */
 .recent-transactions-container {
   display: flex;
