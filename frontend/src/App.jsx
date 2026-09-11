@@ -1814,16 +1814,16 @@ function App() {
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                         <h1 style={{ fontSize: '1.8rem', fontWeight: 800 }}>{currentUser ? currentUser.name : 'Harshil Jain'}</h1>
-                        <span className="badge badge-income" style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pro Developer Account</span>
+                        <span className="badge badge-income" style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pro Account</span>
                       </div>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>{currentUser ? currentUser.email : 'harshiljain2709@gmail.com'} • Full-Stack Software Developer (B.Tech IT)</p>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>{currentUser ? currentUser.email : 'user@finflow.app'} • Personal Wealth Dashboard</p>
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                       <button className="btn btn-primary" onClick={() => { setEditProfileName(currentUser ? currentUser.name : 'Harshil Jain'); setShowEditProfileModal(true); }} style={{ gap: '6px' }}>
                         <Edit3 size={16} /> Edit Profile
                       </button>
                       <button className="btn btn-outline" onClick={() => setShowResumeModal(true)} style={{ gap: '6px' }}>
-                        🎓 Candidate Card
+                        ⚡ System Info
                       </button>
                     </div>
                   </div>
@@ -2150,83 +2150,53 @@ function App() {
         </div>
       )}
 
-      {/* Resume Placement Card Modal */}
+      {/* System Architecture Modal */}
       {showResumeModal && (
         <div className="modal-overlay">
-          <div className="glass-card modal-content" style={{ maxWidth: '450px' }}>
+          <div className="glass-card modal-content" style={{ maxWidth: '480px', padding: '1.75rem' }}>
             <div className="modal-header">
-              <h2>Candidate Placement Card</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Zap size={22} style={{ color: 'var(--primary)' }} />
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 700 }}>System Architecture</h2>
+              </div>
               <button className="action-btn" onClick={() => setShowResumeModal(false)}>
                 <X size={20} />
               </button>
             </div>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', alignItems: 'center', textAlign: 'center', padding: '1rem 0' }}>
-              <div style={{ 
-                width: '80px', 
-                height: '80px', 
-                borderRadius: '50%', 
-                background: 'linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                fontSize: '2rem',
-                fontWeight: 700,
-                color: '#fff',
-                boxShadow: '0 0 20px var(--primary-glow)'
-              }}>
-                HJ
-              </div>
-              
-              <div>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Harshil Jain</h3>
-                <p style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.95rem', marginTop: '0.25rem' }}>
-                  Full-Stack Software Developer
-                </p>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                  Information Technology
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '0.5rem 0' }}>
+              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--card-border)' }}>
+                <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--primary)' }}>FinFlow Enterprise Engine</div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.5 }}>
+                  A production-grade full-stack financial management platform engineered with asynchronous I/O and JWT multi-tenant cloud isolation.
                 </p>
               </div>
 
-              <div className="dropdown-divider" style={{ width: '100%' }}></div>
-
-              <div style={{ width: '100%', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>📍 Education:</span>
-                  <span style={{ fontWeight: 500 }}>B.Tech in IT</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.88rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--card-border)' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>⚙️ Framework:</span>
+                  <span style={{ fontWeight: 600 }}>MERN Stack (React 18, Node.js, Express)</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>📧 Email:</span>
-                  <span style={{ fontWeight: 500 }}>harshiljain2709@gmail.com</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--card-border)' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>🔒 Security:</span>
+                  <span style={{ fontWeight: 600 }}>JWT Bearer Token + bcrypt Passwords</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>🔗 LinkedIn:</span>
-                  <a href="https://linkedin.com/in/harshiljainn" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
-                    linkedin.com/in/harshil-jain
-                  </a>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--card-border)' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>⚡ Database:</span>
+                  <span style={{ fontWeight: 600 }}>MongoDB Atlas + JSON Fallback</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>💻 GitHub:</span>
-                  <a href="https://github.com/harshil2709" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
-                    github.com/harshil-jain
-                  </a>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--card-border)' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>🎨 UI Styling:</span>
+                  <span style={{ fontWeight: 600 }}>Vanilla CSS Glassmorphism Theme</span>
                 </div>
-              </div>
-
-              <div className="dropdown-divider" style={{ width: '100%' }}></div>
-              
-              <div style={{ width: '100%' }}>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                  "Highly passionate about building scalable, secure, and responsive full-stack applications. Open to Software Engineering internships and full-time placement opportunities."
-                </p>
               </div>
 
               <button 
                 className="btn btn-primary" 
                 onClick={() => setShowResumeModal(false)}
-                style={{ width: '100%', marginTop: '0.5rem' }}
+                style={{ width: '100%', marginTop: '0.5rem', justifyContent: 'center' }}
               >
-                Close Profile Card
+                Close Architecture View
               </button>
             </div>
           </div>
