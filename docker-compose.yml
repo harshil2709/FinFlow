@@ -15,6 +15,16 @@ services:
     networks:
       - finflow-net
 
+  # Redis In-Memory Cache Container
+  redis:
+    image: redis:alpine
+    container_name: finflow-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - finflow-net
+
   # Express Node.js Backend Container
   backend:
     build:
@@ -27,9 +37,11 @@ services:
     environment:
       PORT: 5000
       MONGO_URI: mongodb://mongodb:27017/expensetracker
+      REDIS_URI: redis://redis:6379
       NODE_ENV: production
     depends_on:
       - mongodb
+      - redis
     networks:
       - finflow-net
 

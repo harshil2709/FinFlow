@@ -3,6 +3,7 @@ const Budget = require("../models/Budget");
 const Subscription = require("../models/Subscription");
 const Goal = require("../models/Goal");
 const { getIsConnected } = require("../config/db");
+const { isRedisConnected, getCachedData, setCachedData, deleteCachedData } = require("../config/redis");
 const fs = require("fs");
 const path = require("path");
 
@@ -448,10 +449,17 @@ const resetDatabase = async (req, res) => {
 };
 
 const getStatus = async (req, res) => {
+    const dbActive = getIsConnected();
+    const redisActive = isRedisConnected();
+    let dbTypeStr = dbActive ? "MongoDB Cloud" : "Local JSON File";
+    if (redisActive) {
+        dbTypeStr += " + Redis Cache";
+    }
     res.status(200).json({
         success: true,
-        dbConnected: getIsConnected(),
-        dbType: getIsConnected() ? "MongoDB Cloud" : "Local JSON File"
+        dbConnected: dbActive,
+        redisConnected: redisActive,
+        dbType: dbTypeStr
     });
 };
 

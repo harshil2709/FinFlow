@@ -6,7 +6,8 @@ FinFlow is a resilient, enterprise-grade financial management platform built on 
 
 ## 🚀 Key Technical Highlights (Resume & Placement Ready)
 
-- **🐳 Multi-Stage Docker Containerization**: Fully containerized using Nginx-served multi-stage builds for the React frontend, Node.js Alpine base images for the API backend, and automated container orchestration via `docker-compose.yml`.
+- **🔴 Redis In-Memory Caching Layer**: Integrated Redis v4 in-memory caching engine (`backend/config/redis.js`) with automatic connection retry strategies and graceful fallback to direct database queries when Redis is offline.
+- **🐳 Multi-Stage Docker Containerization**: Fully containerized using Nginx-served multi-stage builds for the React frontend, Node.js Alpine base images for the API backend, Redis cache container, and automated container orchestration via `docker-compose.yml`.
 - **⚡ Automated GitHub Actions CI/CD Pipeline**: Configured `.github/workflows/ci-cd.yml` to automatically execute dependency checks, React production bundle compilation, and Docker image builds on every push to `main`.
 - **🌅 FinFlow Horizon Predictive Engine**: Built an interactive compound wealth growth simulator allowing users to project 1-Year, 3-Year, 5-Year, and 10-Year compounding horizons based on monthly savings, expected returns, and expense cuts.
 - **🛡️ Resilient Hybrid Storage Engine**: Architected a custom fail-safe database connection system that dynamically tests local/cloud MongoDB connectivity (with a 2s timeout) and automatically falls back to local JSON flat-file storage when database clusters are unreachable, ensuring **100% uptime**.
@@ -24,7 +25,8 @@ graph TD
         GA[GitHub Actions Pipeline] -->|Build & Test| DC[Docker Compose]
         DC -->|Container 1| FE[Frontend Nginx Container :80]
         DC -->|Container 2| BE[Backend Express Container :5000]
-        DC -->|Container 3| DB[MongoDB Database Container :27017]
+        DC -->|Container 3| DB[MongoDB Container :27017]
+        DC -->|Container 4| RD[Redis Cache Container :6379]
     end
 
     subgraph "Frontend (React + Vite)"
@@ -32,7 +34,8 @@ graph TD
         A -->|Interactive Charts| D[Chart.js / React-Chartjs-2]
     end
 
-    subgraph "Storage Layer"
+    subgraph "Storage & Caching Layer"
+        BE -->|Cache Lookup| RD
         BE -->|Driver Check| H{Mongoose Cluster Active?}
         H -->|Yes| I[(MongoDB Cloud / Local Container)]
         H -->|Fallback| J[(Local JSON Storage)]
@@ -40,7 +43,8 @@ graph TD
 ```
 
 - **Frontend**: React.js (Vite), Chart.js, Lucide Icons, Glassmorphic CSS
-- **Backend**: Node.js, Express.js, Cors, Dotenv
+- **Backend**: Node.js (v20), Express.js, Cors, Dotenv
+- **Caching**: Redis (In-Memory Data Store)
 - **DevOps & Cloud**: Docker, Docker Compose, Nginx, GitHub Actions CI/CD
 - **Deployment**: Live on **Vercel** (Frontend) and **Render** (Backend)
 - **Database / Storage**: MongoDB (Mongoose ODM) & Local File System (JSON Flat-files)

@@ -2,13 +2,15 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const { connectDB } = require("./config/db");
+const { initRedis } = require("./config/redis");
 const expenseroutes = require("./routes/expenseroutes");
 
 // Load env vars
 dotenv.config();
 
-// Connect to MongoDB
+// Connect to MongoDB & Redis Cache
 connectDB();
+initRedis();
 
 const app = express();
 

@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for React SPA Frontend
-# Stage 1: Build React static assets with Vite
-FROM node:18-alpine AS build
+# Stage 1: Build React static assets with Vite using Node 20 (required by Vite 8 / Rolldown)
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
