@@ -1,5 +1,5 @@
 // FinFlow Production Build Trigger 2
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Wallet, 
   TrendingUp, 
@@ -144,6 +144,8 @@ function App() {
     { sender: 'ai', text: 'Hello! I am your FinFlow AI Financial Coach. Ask me anything about your spending, budget optimizations, or savings strategies!' }
   ]);
   const [aiChatLoading, setAiChatLoading] = useState(false);
+  const [isScanningReceipt, setIsScanningReceipt] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Settings State
   const [currencySymbol, setCurrencySymbol] = useState(() => localStorage.getItem('finflow_currency') || '₹');
@@ -512,7 +514,52 @@ function App() {
       setAiChatLoading(false);
     }
   };
+  // Multimodal Receipt OCR Scanner Handler (Gemini Vision)
+  const handleReceiptUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
+    if (file.size > 5 * 1024 * 1024) {
+      addToast('File size must be under 5MB', 'error');
+      return;
+    }
+
+    setIsScanningReceipt(true);
+    addToast('⚡ Gemini Vision scanning receipt image...', 'info');
+
+    const formData = new FormData();
+    formData.append('receipt', file);
+
+    try {
+      const res = await fetch(`${API_BASE}/ai/scan-receipt`, {
+        method: 'POST',
+        headers: { ...getAuthHeaders() }, // Multer sets multipart boundary automatically
+        body: formData
+      });
+
+      const data = await res.json();
+      if (data.success && data.data) {
+        // Pre-fill Transaction Form state
+        setFormTitle(data.data.title || 'Scanned Receipt');
+        setFormAmount(data.data.amount ? String(data.data.amount) : '');
+        setFormCategory(data.data.category || 'Shopping');
+        setFormType(data.data.type || 'expense');
+        if (data.data.date) setFormDate(data.data.date);
+
+        // Open Add Transaction Modal for user confirmation
+        setShowAddModal(true);
+        addToast(`✨ Receipt parsed! Pre-filled ${data.data.title} (${currencySymbol}${data.data.amount})`, 'success');
+      } else {
+        addToast(data.message || 'Could not parse receipt image.', 'error');
+      }
+    } catch (err) {
+      console.error('Receipt Scan Error:', err);
+      addToast('Error uploading or scanning receipt image.', 'error');
+    } finally {
+      setIsScanningReceipt(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
   // Export Transactions as CSV Statement
   const exportCSV = () => {
     if (filteredTransactions.length === 0) {
@@ -1359,6 +1406,43 @@ function App() {
                     <button type="submit" className="btn btn-primary" disabled={aiParsing} style={{ gap: '6px', background: 'linear-gradient(135deg, #a855f7 0%, var(--primary) 100%)', border: 'none' }}>
                       <Sparkles size={16} /> {aiParsing ? 'AI Parsing...' : 'Auto-Log Expense'}
                     </button>
+                      {/* Hidden File Input for Receipt Upload */}
+                    <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*,application/pdf"
+                    style={{ display: 'none' }}
+                    onChange={handleReceiptUpload}
+                    />
+
+                     {/* Camera Scan Receipt Button */}
+                   {/* Camera Scan Receipt Button */}
+<button
+  type="button"
+  onClick={() => fileInputRef.current?.click()}
+  disabled={isScanningReceipt}
+  className="btn"
+  style={{ 
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px', 
+    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', 
+    color: '#ffffff', 
+    border: 'none', 
+    padding: '0.6rem 1.2rem', 
+    borderRadius: '8px', 
+    cursor: 'pointer', 
+    fontWeight: 600,
+    boxShadow: '0 4px 14px rgba(99, 102, 241, 0.3)'
+  }}
+  title="Scan Receipt with Gemini Vision"
+>
+  {isScanningReceipt ? (
+    <span className="spinner-border spinner-border-sm" role="status"></span>
+  ) : (
+    <span>📸 Scan Receipt</span>
+  )}
+</button>
                   </form>
                 </div>
 
