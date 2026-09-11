@@ -146,6 +146,26 @@ function App() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState('');
 
+  // Edit Profile State
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [editProfileName, setEditProfileName] = useState('');
+
+  const handleSaveProfile = (e) => {
+    e.preventDefault();
+    if (!editProfileName.trim()) {
+      addToast('Please enter a valid name', 'error');
+      return;
+    }
+    const updatedUser = currentUser 
+      ? { ...currentUser, name: editProfileName.trim() }
+      : { id: 'local_user', name: editProfileName.trim(), email: 'harshiljain2709@gmail.com' };
+    
+    setCurrentUser(updatedUser);
+    localStorage.setItem('finflow_user', JSON.stringify(updatedUser));
+    addToast('Profile name updated successfully!', 'success');
+    setShowEditProfileModal(false);
+  };
+
   // Helper for Auth Headers
   const getAuthHeaders = () => {
     const headers = { 'Content-Type': 'application/json' };
@@ -1786,15 +1806,15 @@ function App() {
                         <span className="badge badge-income" style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pro Developer Account</span>
                       </div>
                       <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>{currentUser ? currentUser.email : 'harshiljain2709@gmail.com'} • Full-Stack Software Developer (B.Tech IT)</p>
-                      <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.75rem', fontSize: '0.82rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><ShieldCheck size={15} style={{ color: 'var(--success)' }} /> JWT Cloud Encrypted</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Database size={15} style={{ color: 'var(--primary)' }} /> MongoDB Isolation</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Award size={15} style={{ color: '#fbbf24' }} /> TCS Placement Ready</span>
-                      </div>
                     </div>
-                    <button className="btn btn-outline" onClick={() => setShowResumeModal(true)} style={{ gap: '6px' }}>
-                      🎓 Candidate Card
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                      <button className="btn btn-primary" onClick={() => { setEditProfileName(currentUser ? currentUser.name : 'Harshil Jain'); setShowEditProfileModal(true); }} style={{ gap: '6px' }}>
+                        <Edit3 size={16} /> Edit Profile
+                      </button>
+                      <button className="btn btn-outline" onClick={() => setShowResumeModal(true)} style={{ gap: '6px' }}>
+                        🎓 Candidate Card
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -2501,6 +2521,43 @@ function App() {
                 </button>
                 <button type="submit" className="btn btn-primary">
                   Confirm Deposit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      {showEditProfileModal && (
+        <div className="modal-overlay">
+          <div className="glass-card modal-content" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h2>Edit Profile</h2>
+              <button className="action-btn" onClick={() => setShowEditProfileModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProfile}>
+              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <label className="form-label">Full Name</label>
+                <input 
+                  type="text" 
+                  className="glass-input" 
+                  placeholder="Enter your full name"
+                  required
+                  value={editProfileName}
+                  onChange={(e) => setEditProfileName(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setShowEditProfileModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Save Changes
                 </button>
               </div>
             </form>
