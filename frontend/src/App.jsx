@@ -1746,7 +1746,7 @@ function App() {
                   </button>
                 </div>
 
-                {goals.length === 0 ? (
+                {(!goals || goals.length === 0) ? (
                   <div className="glass-card empty-state" style={{ padding: '3rem 1.5rem' }}>
                     <PiggyBank size={48} style={{ color: 'var(--primary)', opacity: 0.8, marginBottom: '1rem' }} />
                     <h3>No active savings goals found</h3>
@@ -1759,16 +1759,20 @@ function App() {
                   </div>
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
-                    {goals.map((g) => {
-                      const pct = Math.min(Math.round((g.currentAmount / g.targetAmount) * 100), 100);
-                      const daysLeft = Math.ceil((new Date(g.targetDate) - new Date()) / (1000 * 60 * 60 * 24));
+                    {(goals || []).map((g) => {
+                      if (!g) return null;
+                      const current = Number(g.currentAmount) || 0;
+                      const target = Number(g.targetAmount) || 1;
+                      const pct = Math.min(Math.round((current / target) * 100), 100);
+                      const targetDateObj = g.targetDate ? new Date(g.targetDate) : new Date();
+                      const daysLeft = Math.ceil((targetDateObj - new Date()) / (1000 * 60 * 60 * 24));
                       return (
-                        <div key={g._id} className="glass-card" style={{ border: '1px solid var(--card-border)', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <div key={g._id || Math.random()} className="glass-card" style={{ border: '1px solid var(--card-border)', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                           <div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                               <div>
                                 <span className="badge badge-income" style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{g.category || 'Savings'}</span>
-                                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '0.35rem' }}>{g.title}</h3>
+                                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '0.35rem' }}>{g.title || 'Savings Goal'}</h3>
                               </div>
                               <button className="action-btn delete" onClick={() => handleDeleteGoal(g._id, g.title)}>
                                 <Trash2 size={16} />
@@ -1776,8 +1780,8 @@ function App() {
                             </div>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
-                              <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)' }}>₹{g.currentAmount.toLocaleString()}</span>
-                              <span style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>Target: ₹{g.targetAmount.toLocaleString()}</span>
+                              <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)' }}>{currencySymbol}{current.toLocaleString()}</span>
+                              <span style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>Target: {currencySymbol}{target.toLocaleString()}</span>
                             </div>
 
                             {/* Progress Bar */}
