@@ -741,6 +741,12 @@ function App() {
       { title: 'AWS Cloud Hosting', amount: 450, billingCycle: 'monthly', category: 'Utilities', nextDueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: 'active' }
     ];
 
+    const sampleGoals = [
+      { title: 'Emergency Fund', targetAmount: 50000, currentAmount: 15000, targetDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], category: 'Emergency' },
+      { title: 'New Macbook Pro', targetAmount: 120000, currentAmount: 45000, targetDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], category: 'Gadgets' },
+      { title: 'Goa Vacation', targetAmount: 25000, currentAmount: 18000, targetDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], category: 'Travel' }
+    ];
+
     try {
       // Add transactions
       for (let t of sampleTransactions) {
@@ -769,10 +775,20 @@ function App() {
         });
       }
 
-      addToast('Loaded mock transaction database!', 'success');
+      // Add sample goals
+      for (let g of sampleGoals) {
+        await fetch(`${API_BASE}/goals`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(g)
+        });
+      }
+
+      addToast('Loaded mock financial database!', 'success');
       fetchTransactions();
       fetchBudgets();
       fetchSubscriptions();
+      fetchGoals();
     } catch (err) {
       console.error(err);
       addToast('Error inserting sample data', 'error');
