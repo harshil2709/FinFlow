@@ -223,16 +223,64 @@ function App() {
     try {
       const res = await fetch(`${API_BASE}/expenses`, { headers: getAuthHeaders() });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && Array.isArray(data.data)) {
         setTransactions(data.data);
       } else {
-        addToast('Failed to fetch transactions', 'error');
+        setTransactions([]);
       }
     } catch (err) {
       console.error(err);
-      addToast('Cannot connect to server', 'error');
+      setTransactions([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch Budgets
+  const getBudgets = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/budgets`, { headers: getAuthHeaders() });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setBudgets(data.data);
+      } else {
+        setBudgets([]);
+      }
+    } catch (err) {
+      console.error(err);
+      setBudgets([]);
+    }
+  };
+
+  // Fetch subscriptions
+  const fetchSubscriptions = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/subscriptions`, { headers: getAuthHeaders() });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setSubscriptions(data.data);
+      } else {
+        setSubscriptions([]);
+      }
+    } catch (err) {
+      console.error(err);
+      setSubscriptions([]);
+    }
+  };
+
+  // Fetch Savings Goals
+  const fetchGoals = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/goals`, { headers: getAuthHeaders() });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setGoals(data.data);
+      } else {
+        setGoals([]);
+      }
+    } catch (err) {
+      console.error(err);
+      setGoals([]);
     }
   };
 
@@ -246,19 +294,6 @@ function App() {
       }
     } catch (err) {
       setDbStatus({ connected: false, type: 'Offline Mode' });
-    }
-  };
-
-  // Fetch Savings Goals
-  const fetchGoals = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/goals`, { headers: getAuthHeaders() });
-      const data = await res.json();
-      if (data.success) {
-        setGoals(data.data);
-      }
-    } catch (err) {
-      console.error(err);
     }
   };
 
