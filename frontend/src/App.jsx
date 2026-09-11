@@ -125,8 +125,19 @@ function App() {
   const [goalTarget, setGoalTarget] = useState('');
   const [goalCurrent, setGoalCurrent] = useState('');
   const [goalDate, setGoalDate] = useState(new Date().toISOString().split('T')[0]);
-  const [goalCategory, setGoalCategory] = useState('Savings');
-  const [depositAmount, setDepositAmount] = useState('');
+  // Settings State
+  const [currencySymbol, setCurrencySymbol] = useState(() => localStorage.getItem('finflow_currency') || '₹');
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [alertBudgetWarnings, setAlertBudgetWarnings] = useState(() => localStorage.getItem('finflow_alert_budget') !== 'false');
+  const [alertSubReminders, setAlertSubReminders] = useState(() => localStorage.getItem('finflow_alert_sub') !== 'false');
+
+  const handleSaveSettings = () => {
+    localStorage.setItem('finflow_currency', currencySymbol);
+    localStorage.setItem('finflow_alert_budget', alertBudgetWarnings);
+    localStorage.setItem('finflow_alert_sub', alertSubReminders);
+    addToast('Account settings updated!', 'success');
+    setShowSettingsModal(false);
+  };
 
   // Authentication State
   const [currentUser, setCurrentUser] = useState(() => {
@@ -1138,7 +1149,7 @@ function App() {
                       <li onClick={() => { setActiveTab('profile'); setShowProfileMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <User size={16} style={{ color: 'var(--primary)' }} /> My Profile
                       </li>
-                      <li onClick={() => { exportJSON(); setShowProfileMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <li onClick={() => { setShowSettingsModal(true); setShowProfileMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Settings size={16} style={{ color: 'var(--text-secondary)' }} /> Account Settings
                       </li>
                       <li onClick={() => { handleResetDatabase(); setShowProfileMenu(false); }} className="danger-action" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1181,7 +1192,7 @@ function App() {
                   <div className="glass-card stat-card balance">
                     <div className="stat-info">
                       <h3>Net Balance</h3>
-                      <div className="stat-value">₹{computedStats.balance.toLocaleString()}</div>
+                      <div className="stat-value">{currencySymbol}{computedStats.balance.toLocaleString()}</div>
                     </div>
                     <div className="stat-icon">
                       <Wallet size={24} />
@@ -1190,7 +1201,7 @@ function App() {
                   <div className="glass-card stat-card income">
                     <div className="stat-info">
                       <h3>Total Income</h3>
-                      <div className="stat-value" style={{ color: 'var(--success)' }}>₹{computedStats.income.toLocaleString()}</div>
+                      <div className="stat-value" style={{ color: 'var(--success)' }}>{currencySymbol}{computedStats.income.toLocaleString()}</div>
                     </div>
                     <div className="stat-icon">
                       <TrendingUp size={24} />
@@ -1199,7 +1210,7 @@ function App() {
                   <div className="glass-card stat-card expenses">
                     <div className="stat-info">
                       <h3>Total Expenses</h3>
-                      <div className="stat-value" style={{ color: 'var(--danger)' }}>₹{computedStats.expenses.toLocaleString()}</div>
+                      <div className="stat-value" style={{ color: 'var(--danger)' }}>{currencySymbol}{computedStats.expenses.toLocaleString()}</div>
                     </div>
                     <div className="stat-icon">
                       <TrendingDown size={24} />
@@ -2558,6 +2569,99 @@ function App() {
                 </button>
                 <button type="submit" className="btn btn-primary">
                   Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Account Settings Modal */}
+      {showSettingsModal && (
+        <div className="modal-overlay">
+          <div className="glass-card modal-content" style={{ maxWidth: '480px', padding: '1.75rem' }}>
+            <div className="modal-header" style={{ marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Settings size={22} style={{ color: 'var(--primary)' }} />
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 700 }}>Account Settings</h2>
+              </div>
+              <button className="action-btn" onClick={() => setShowSettingsModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => { e.preventDefault(); handleSaveSettings(); }}>
+              {/* 1. Currency Preference Switcher */}
+              <div style={{ marginBottom: '1.5rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--card-border)' }}>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, marginBottom: '0.5rem' }}>
+                  <DollarSign size={16} style={{ color: 'var(--primary)' }} /> Primary Currency Display
+                </label>
+                <select 
+                  className="glass-input" 
+                  value={currencySymbol} 
+                  onChange={(e) => setCurrencySymbol(e.target.value)}
+                  style={{ width: '100%' }}
+                >
+                  <option value="₹">₹ INR - Indian Rupee</option>
+                  <option value="$">$ USD - US Dollar</option>
+                  <option value="€">€ EUR - Euro</option>
+                  <option value="£">£ GBP - British Pound</option>
+                </select>
+              </div>
+
+              {/* 2. Data & Backup Center */}
+              <div style={{ marginBottom: '1.5rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--card-border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, margin: 0 }}>
+                    <Database size={16} style={{ color: 'var(--primary)' }} /> Data & Cloud Backups
+                  </label>
+                  <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '12px', background: dbStatus.connected ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)', color: dbStatus.connected ? 'var(--success)' : '#f59e0b', border: '1px solid currentColor' }}>
+                    {dbStatus.connected ? 'MongoDB Cloud' : 'Local Fallback'}
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <button type="button" className="btn btn-outline" onClick={exportJSON} style={{ fontSize: '0.82rem', padding: '0.5rem', justifyContent: 'center', gap: '6px' }}>
+                    <Download size={14} /> JSON Backup
+                  </button>
+                  <button type="button" className="btn btn-outline" onClick={exportCSV} style={{ fontSize: '0.82rem', padding: '0.5rem', justifyContent: 'center', gap: '6px' }}>
+                    <FileSpreadsheet size={14} /> CSV Statement
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. Notification & Alert Preferences */}
+              <div style={{ marginBottom: '1.5rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--card-border)' }}>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, marginBottom: '0.75rem' }}>
+                  <AlertCircle size={16} style={{ color: 'var(--primary)' }} /> Alerts & Preferences
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.88rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={alertBudgetWarnings} 
+                      onChange={(e) => setAlertBudgetWarnings(e.target.checked)}
+                      style={{ accentColor: 'var(--primary)', width: '16px', height: '16px' }}
+                    />
+                    <span>Show Over-Budget Compliance Warnings</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={alertSubReminders} 
+                      onChange={(e) => setAlertSubReminders(e.target.checked)}
+                      style={{ accentColor: 'var(--primary)', width: '16px', height: '16px' }}
+                    />
+                    <span>Show Subscription Auto-Debit Due Notifications</span>
+                  </label>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setShowSettingsModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Save Settings
                 </button>
               </div>
             </form>
