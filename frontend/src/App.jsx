@@ -1070,6 +1070,7 @@ function App() {
               {activeTab === 'budgets' && 'Budgets & Limits'}
               {activeTab === 'subscriptions' && 'Auto-Debit Subscriptions'}
               {activeTab === 'goals' && 'Savings Goals & Target Milestones'}
+              {activeTab === 'profile' && 'User Profile & Financial Portfolio'}
             </h1>
             <p>
               {activeTab === 'dashboard' && 'Real-time overview of your income, expenses, and category budgets'}
@@ -1077,6 +1078,7 @@ function App() {
               {activeTab === 'budgets' && 'Define limits per expense category to monitor and curb spending'}
               {activeTab === 'subscriptions' && 'Monitor and manage monthly auto-debit payments and upcoming bills'}
               {activeTab === 'goals' && 'Track progress towards your savings targets and milestone allocations'}
+              {activeTab === 'profile' && 'View your personal profile, transaction analytics, and financial milestones'}
             </p>
           </div>
 
@@ -1113,7 +1115,7 @@ function App() {
                     </div>
                     <div className="dropdown-divider"></div>
                     <ul className="dropdown-menu-list">
-                      <li onClick={() => { setShowResumeModal(true); setShowProfileMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <li onClick={() => { setActiveTab('profile'); setShowProfileMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <User size={16} style={{ color: 'var(--primary)' }} /> My Profile
                       </li>
                       <li onClick={() => { exportJSON(); setShowProfileMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1766,6 +1768,113 @@ function App() {
                     })}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* My Profile & Financial Portfolio Tab */}
+            {activeTab === 'profile' && (
+              <div className="fade-in">
+                {/* Profile Banner */}
+                <div className="glass-card" style={{ marginBottom: '2rem', border: '1px solid rgba(224, 169, 109, 0.3)', background: 'linear-gradient(135deg, rgba(224, 169, 109, 0.1) 0%, rgba(24, 24, 27, 0.8) 100%)', padding: '2rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+                    <div style={{ width: '84px', height: '84px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary) 0%, #a855f7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.2rem', fontWeight: 800, color: '#fff', boxShadow: '0 0 25px rgba(224, 169, 109, 0.4)' }}>
+                      {currentUser ? (currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U') : 'H'}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                        <h1 style={{ fontSize: '1.8rem', fontWeight: 800 }}>{currentUser ? currentUser.name : 'Harshil Jain'}</h1>
+                        <span className="badge badge-income" style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pro Developer Account</span>
+                      </div>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>{currentUser ? currentUser.email : 'harshiljain2709@gmail.com'} • Full-Stack Software Developer (B.Tech IT)</p>
+                      <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.75rem', fontSize: '0.82rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><ShieldCheck size={15} style={{ color: 'var(--success)' }} /> JWT Cloud Encrypted</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Database size={15} style={{ color: 'var(--primary)' }} /> MongoDB Isolation</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Award size={15} style={{ color: '#fbbf24' }} /> TCS Placement Ready</span>
+                      </div>
+                    </div>
+                    <button className="btn btn-outline" onClick={() => setShowResumeModal(true)} style={{ gap: '6px' }}>
+                      🎓 Candidate Card
+                    </button>
+                  </div>
+                </div>
+
+                {/* Portfolio Stats Grid */}
+                <div className="stats-grid" style={{ marginBottom: '2rem' }}>
+                  <div className="glass-card stat-card balance">
+                    <div className="stat-info">
+                      <h3>Total Income Flow</h3>
+                      <div className="stat-value" style={{ color: 'var(--success)' }}>₹{computedStats.income.toLocaleString()}</div>
+                    </div>
+                    <div className="stat-icon"><TrendingUp size={24} /></div>
+                  </div>
+                  <div className="glass-card stat-card expenses">
+                    <div className="stat-info">
+                      <h3>Total Expense Flow</h3>
+                      <div className="stat-value" style={{ color: 'var(--danger)' }}>₹{computedStats.expenses.toLocaleString()}</div>
+                    </div>
+                    <div className="stat-icon"><TrendingDown size={24} /></div>
+                  </div>
+                  <div className="glass-card stat-card balance">
+                    <div className="stat-info">
+                      <h3>Net Capital Savings</h3>
+                      <div className="stat-value" style={{ color: 'var(--primary)' }}>₹{computedStats.balance.toLocaleString()}</div>
+                    </div>
+                    <div className="stat-icon"><Wallet size={24} /></div>
+                  </div>
+                </div>
+
+                {/* Visual Chart & Milestones Split */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                  {/* Category Expense Visual Chart */}
+                  <div className="glass-card">
+                    <div className="chart-header" style={{ marginBottom: '1rem' }}>
+                      <h2>Visual Category Breakdown</h2>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Distribution</span>
+                    </div>
+                    <div style={{ height: '240px', position: 'relative' }}>
+                      {transactions.length > 0 ? (
+                        <Doughnut 
+                          data={categoryChartData} 
+                          options={{ 
+                            responsive: true, 
+                            maintainAspectRatio: false, 
+                            plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 } } } } 
+                          }} 
+                        />
+                      ) : (
+                        <div className="empty-state"><p>No transactions to display visual breakdown</p></div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Account Badges & System Metrics */}
+                  <div className="glass-card">
+                    <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1rem' }}>Account Milestones & Metrics</h2>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+                        <Award size={24} style={{ color: 'var(--primary)' }} />
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>Financial Health Score: {aiInsights.score}/100</div>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Status: {aiInsights.status}</div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+                        <Target size={24} style={{ color: '#10b981' }} />
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>Savings Goals Tracked: {goals.length} Active Targets</div>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Target completion progress</div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+                        <Zap size={24} style={{ color: '#fbbf24' }} />
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>Total Transactions: {transactions.length} Records</div>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Scoped to your user ID</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </>
