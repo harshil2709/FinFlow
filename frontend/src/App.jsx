@@ -1113,17 +1113,17 @@ function App() {
                     </div>
                     <div className="dropdown-divider"></div>
                     <ul className="dropdown-menu-list">
-                      <li onClick={() => { setShowResumeModal(true); setShowProfileMenu(false); }}>
-                        🎓 View Placement Card
+                      <li onClick={() => { setShowResumeModal(true); setShowProfileMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <User size={16} style={{ color: 'var(--primary)' }} /> My Profile
                       </li>
-                      <li onClick={exportJSON}>
-                        💾 Export JSON Backup
+                      <li onClick={() => { exportJSON(); setShowProfileMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Settings size={16} style={{ color: 'var(--text-secondary)' }} /> Account Settings
                       </li>
-                      <li onClick={handleResetDatabase} className="danger-action">
-                        ⚠️ Wipe Database
+                      <li onClick={() => { handleResetDatabase(); setShowProfileMenu(false); }} className="danger-action" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Trash2 size={16} style={{ color: 'var(--danger)' }} /> Delete Account
                       </li>
-                      <li onClick={handleLogout} style={{ color: 'var(--danger)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <LogOut size={15} /> Log Out
+                      <li onClick={() => { handleLogout(); setShowProfileMenu(false); }} style={{ color: 'var(--danger)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', borderTop: '1px solid var(--card-border)', paddingTop: '0.6rem', marginTop: '0.2rem' }}>
+                        <LogOut size={16} /> Log Out
                       </li>
                     </ul>
                   </div>
