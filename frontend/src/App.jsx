@@ -1822,9 +1822,6 @@ function App() {
                       <button className="btn btn-primary" onClick={() => { setEditProfileName(currentUser ? currentUser.name : 'Harshil Jain'); setShowEditProfileModal(true); }} style={{ gap: '6px' }}>
                         <Edit3 size={16} /> Edit Profile
                       </button>
-                      <button className="btn btn-outline" onClick={() => setShowResumeModal(true)} style={{ gap: '6px' }}>
-                        ⚡ System Info
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -2150,58 +2147,7 @@ function App() {
         </div>
       )}
 
-      {/* System Architecture Modal */}
-      {showResumeModal && (
-        <div className="modal-overlay">
-          <div className="glass-card modal-content" style={{ maxWidth: '480px', padding: '1.75rem' }}>
-            <div className="modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Zap size={22} style={{ color: 'var(--primary)' }} />
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 700 }}>System Architecture</h2>
-              </div>
-              <button className="action-btn" onClick={() => setShowResumeModal(false)}>
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '0.5rem 0' }}>
-              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--card-border)' }}>
-                <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--primary)' }}>FinFlow Enterprise Engine</div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.5 }}>
-                  A production-grade full-stack financial management platform engineered with asynchronous I/O and JWT multi-tenant cloud isolation.
-                </p>
-              </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.88rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--card-border)' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>⚙️ Framework:</span>
-                  <span style={{ fontWeight: 600 }}>MERN Stack (React 18, Node.js, Express)</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--card-border)' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>🔒 Security:</span>
-                  <span style={{ fontWeight: 600 }}>JWT Bearer Token + bcrypt Passwords</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--card-border)' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>⚡ Database:</span>
-                  <span style={{ fontWeight: 600 }}>MongoDB Atlas + JSON Fallback</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--card-border)' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>🎨 UI Styling:</span>
-                  <span style={{ fontWeight: 600 }}>Vanilla CSS Glassmorphism Theme</span>
-                </div>
-              </div>
-
-              <button 
-                className="btn btn-primary" 
-                onClick={() => setShowResumeModal(false)}
-                style={{ width: '100%', marginTop: '0.5rem', justifyContent: 'center' }}
-              >
-                Close Architecture View
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* User Authentication Modal */}
       {showAuthModal && (
