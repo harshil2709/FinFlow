@@ -294,15 +294,21 @@ body {
   flex-direction: column;
   gap: 0.5rem;
   margin-bottom: 1.25rem;
+  min-width: 0;
 }
 
 .form-group label {
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .glass-input {
+  width: 100%;
+  box-sizing: border-box;
   background: rgba(15, 23, 42, 0.45);
   border: 1px solid var(--card-border);
   color: var(--text-primary);
@@ -318,10 +324,11 @@ body {
   box-shadow: 0 0 10px var(--primary-glow);
 }
 
-.input-row {
+.form-row, .input-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+  min-width: 0;
 }
 
 /* Buttons */

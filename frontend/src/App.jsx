@@ -2349,7 +2349,7 @@ function App() {
       {/* New Savings Goal Modal */}
       {showGoalModal && (
         <div className="modal-overlay">
-          <div className="glass-card modal-content" style={{ maxWidth: '440px' }}>
+          <div className="glass-card modal-content" style={{ maxWidth: '460px' }}>
             <div className="modal-header">
               <h2>New Savings Goal</h2>
               <button className="action-btn" onClick={() => setShowGoalModal(false)}>
