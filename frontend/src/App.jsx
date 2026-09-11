@@ -125,6 +125,8 @@ function App() {
   const [goalTarget, setGoalTarget] = useState('');
   const [goalCurrent, setGoalCurrent] = useState('');
   const [goalDate, setGoalDate] = useState(new Date().toISOString().split('T')[0]);
+  const [goalCategory, setGoalCategory] = useState('Savings');
+  const [depositAmount, setDepositAmount] = useState('');
   // Settings State
   const [currencySymbol, setCurrencySymbol] = useState(() => localStorage.getItem('finflow_currency') || '₹');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -367,6 +369,7 @@ function App() {
         setGoalTitle('');
         setGoalTarget('');
         setGoalCurrent('');
+        setGoalCategory('Savings');
         fetchGoals();
       } else {
         addToast(data.message || 'Failed to add goal', 'error');
@@ -385,7 +388,8 @@ function App() {
       return;
     }
 
-    const newAmount = selectedGoal.currentAmount + parseFloat(depositAmount);
+    const currentAmt = Number(selectedGoal?.currentAmount) || 0;
+    const newAmount = currentAmt + parseFloat(depositAmount);
     try {
       const res = await fetch(`${API_BASE}/goals/${selectedGoal._id}`, {
         method: 'PUT',
@@ -394,14 +398,17 @@ function App() {
       });
       const data = await res.json();
       if (data.success) {
-        addToast(`Deposited ₹${parseFloat(depositAmount).toLocaleString('en-IN')} towards ${selectedGoal.title}!`, 'success');
+        addToast(`Deposited ${currencySymbol}${parseFloat(depositAmount).toLocaleString()} towards ${selectedGoal.title || 'goal'}!`, 'success');
         setShowDepositModal(false);
         setDepositAmount('');
         setSelectedGoal(null);
         fetchGoals();
+      } else {
+        addToast(data.message || 'Failed to process deposit', 'error');
       }
     } catch (err) {
       console.error(err);
+      addToast('Network error processing deposit', 'error');
     }
   };
 
@@ -1757,7 +1764,7 @@ function App() {
                     <h2 style={{ fontSize: '1.4rem', fontWeight: 700 }}>Financial Savings Goals</h2>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Track custom savings milestones, target dates, and deposit progress</p>
                   </div>
-                  <button className="btn btn-primary" onClick={() => { setGoalTitle(''); setGoalTarget(''); setGoalCurrent(''); setGoalDate(new Date().toISOString().split('T')[0]); setShowGoalModal(true); }}>
+                  <button className="btn btn-primary" onClick={() => { setGoalTitle(''); setGoalTarget(''); setGoalCurrent(''); setGoalCategory('Savings'); setGoalDate(new Date().toISOString().split('T')[0]); setShowGoalModal(true); }}>
                     <Plus size={16} /> New Savings Goal
                   </button>
                 </div>
@@ -2365,7 +2372,7 @@ function App() {
 
               <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                 <div className="form-group">
-                  <label className="form-label">Target Amount (₹)</label>
+                  <label className="form-label">Target Amount ({currencySymbol})</label>
                   <input 
                     type="number" 
                     className="glass-input" 
@@ -2377,7 +2384,7 @@ function App() {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Starting Balance (₹)</label>
+                  <label className="form-label">Starting Balance ({currencySymbol})</label>
                   <input 
                     type="number" 
                     className="glass-input" 
@@ -2444,13 +2451,13 @@ function App() {
             <div style={{ marginBottom: '1.25rem' }}>
               <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Add funds to <strong style={{ color: 'var(--text-primary)' }}>{selectedGoal.title}</strong></p>
               <div style={{ fontSize: '0.85rem', color: 'var(--primary)', marginTop: '4px' }}>
-                Current Progress: ₹{selectedGoal.currentAmount.toLocaleString()} / ₹{selectedGoal.targetAmount.toLocaleString()}
+                Current Progress: {currencySymbol}{(Number(selectedGoal?.currentAmount) || 0).toLocaleString()} / {currencySymbol}{(Number(selectedGoal?.targetAmount) || 0).toLocaleString()}
               </div>
             </div>
 
             <form onSubmit={handleDepositGoal}>
               <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label className="form-label">Deposit Amount (₹)</label>
+                <label className="form-label">Deposit Amount ({currencySymbol})</label>
                 <input 
                   type="number" 
                   className="glass-input" 
