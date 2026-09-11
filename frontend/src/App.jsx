@@ -1136,7 +1136,7 @@ function App() {
             onClick={() => { setActiveTab('forecaster'); setIsSidebarOpen(false); }}
           >
             <Compass size={18} />
-            Wealth Forecaster
+            Horizon
           </li>
         </ul>
 
@@ -1174,7 +1174,7 @@ function App() {
               {activeTab === 'budgets' && 'Budgets & Limits'}
               {activeTab === 'subscriptions' && 'Auto-Debit Subscriptions'}
               {activeTab === 'goals' && 'Savings Goals & Target Milestones'}
-              {activeTab === 'forecaster' && 'FinFlow Horizon • Wealth Forecaster'}
+              {activeTab === 'forecaster' && 'FinFlow Horizon'}
               {activeTab === 'profile' && 'User Profile & Financial Portfolio'}
             </h1>
             <p>
@@ -1881,7 +1881,7 @@ function App() {
               </div>
             )}
 
-            {/* FinFlow Horizon • Wealth Forecaster Tab */}
+            {/* FinFlow Horizon Tab */}
             {activeTab === 'forecaster' && (
               <div className="fade-in">
                 {/* Banner & Preset Header */}
@@ -1893,7 +1893,7 @@ function App() {
                       </div>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <h1 style={{ fontSize: '1.6rem', fontWeight: 800 }}>FinFlow Horizon • Wealth Forecaster</h1>
+                          <h1 style={{ fontSize: '1.6rem', fontWeight: 800 }}>FinFlow Horizon</h1>
                           <span className="badge badge-income" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)' }}>Predictive Engine</span>
                         </div>
                         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
