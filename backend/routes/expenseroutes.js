@@ -24,10 +24,16 @@ const {
     updateGoal
 } = require("../controllers/expensecontroller");
 
+const { parsePromptToExpense, getAiAdvisorChat } = require("../controllers/aiController");
+
 // Authentication Endpoints
 router.post("/auth/register", registerUser);
 router.post("/auth/login", loginUser);
 router.get("/auth/me", protect, getMe);
+
+// AI & LLM Endpoints
+router.post("/ai/parse-prompt", parsePromptToExpense);
+router.post("/ai/advisor-chat", getAiAdvisorChat);
 
 // System Status Route
 router.get("/status", getStatus);

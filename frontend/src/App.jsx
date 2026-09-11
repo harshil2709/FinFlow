@@ -134,6 +134,17 @@ function App() {
   const [forecastMonthlyExtra, setForecastMonthlyExtra] = useState(5000);
   const [forecastReturnRate, setForecastReturnRate] = useState(8);
   const [forecastCutPercent, setForecastCutPercent] = useState(10);
+
+  // AI LLM Integration State
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiParsing, setAiParsing] = useState(false);
+  const [showAiChatModal, setShowAiChatModal] = useState(false);
+  const [aiChatQuery, setAiChatQuery] = useState('');
+  const [aiChatMessages, setAiChatMessages] = useState([
+    { sender: 'ai', text: 'Hello! I am your FinFlow AI Financial Coach. Ask me anything about your spending, budget optimizations, or savings strategies!' }
+  ]);
+  const [aiChatLoading, setAiChatLoading] = useState(false);
+
   // Settings State
   const [currencySymbol, setCurrencySymbol] = useState(() => localStorage.getItem('finflow_currency') || '₹');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -431,6 +442,74 @@ function App() {
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  // AI Prompt Parsing Handler
+  const handleAiParsePrompt = async (e) => {
+    e.preventDefault();
+    if (!aiPrompt.trim()) return;
+    setAiParsing(true);
+    try {
+      const res = await fetch(`${API_BASE}/ai/parse-prompt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({ prompt: aiPrompt })
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        const item = data.data;
+        const postRes = await fetch(`${API_BASE}/expenses`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(item)
+        });
+        const postData = await postRes.json();
+        if (postData.success) {
+          addToast(`AI Logged: "${item.title}" (${currencySymbol}${item.amount.toLocaleString()})`, 'success');
+          setAiPrompt('');
+          fetchExpenses();
+        } else {
+          addToast(postData.message || 'Failed to auto-log transaction', 'error');
+        }
+      } else {
+        addToast('AI parsing failed. Try manual entry.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      addToast('Error connecting to AI service', 'error');
+    } finally {
+      setAiParsing(false);
+    }
+  };
+
+  // AI Advisor Chat Handler
+  const handleAiChatSubmit = async (e, customQuery) => {
+    if (e) e.preventDefault();
+    const queryToUse = customQuery || aiChatQuery;
+    if (!queryToUse.trim()) return;
+
+    const userMsg = { sender: 'user', text: queryToUse };
+    setAiChatMessages((prev) => [...prev, userMsg]);
+    if (!customQuery) setAiChatQuery('');
+    setAiChatLoading(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/ai/advisor-chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({ query: queryToUse, summaryStats: computedStats })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAiChatMessages((prev) => [...prev, { sender: 'ai', text: data.answer }]);
+      } else {
+        setAiChatMessages((prev) => [...prev, { sender: 'ai', text: 'Sorry, I am having trouble answering right now.' }]);
+      }
+    } catch (err) {
+      setAiChatMessages((prev) => [...prev, { sender: 'ai', text: 'Network error communicating with AI Advisor.' }]);
+    } finally {
+      setAiChatLoading(false);
     }
   };
 
@@ -1262,6 +1341,27 @@ function App() {
             {/* Dashboard Tab */}
             {activeTab === 'dashboard' && (
               <div className="fade-in">
+                {/* AI Natural Language Quick-Log Input Bar */}
+                <div className="glass-card" style={{ marginBottom: '1.75rem', border: '1px solid rgba(168, 85, 247, 0.3)', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(24, 24, 27, 0.7) 100%)', padding: '1.25rem 1.5rem' }}>
+                  <form onSubmit={handleAiParsePrompt} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                      <Sparkles size={20} style={{ color: '#a855f7' }} />
+                      <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>AI Quick-Log:</span>
+                    </div>
+                    <input 
+                      type="text" 
+                      className="glass-input" 
+                      placeholder="e.g. Spent 450 on Uber today  OR  Received 50000 salary"
+                      value={aiPrompt}
+                      onChange={(e) => setAiPrompt(e.target.value)}
+                      style={{ flex: 1, minWidth: '220px', background: 'rgba(15, 23, 42, 0.6)' }}
+                    />
+                    <button type="submit" className="btn btn-primary" disabled={aiParsing} style={{ gap: '6px', background: 'linear-gradient(135deg, #a855f7 0%, var(--primary) 100%)', border: 'none' }}>
+                      <Sparkles size={16} /> {aiParsing ? 'AI Parsing...' : 'Auto-Log Expense'}
+                    </button>
+                  </form>
+                </div>
+
                 {/* Stats Widgets */}
                 <div className="stats-grid">
                   <div className="glass-card stat-card balance">
@@ -1300,9 +1400,14 @@ function App() {
                       <Sparkles size={20} style={{ color: 'var(--primary)' }} />
                       <h2 style={{ fontSize: '1.15rem', fontWeight: 700 }}>FinFlow AI Advisor & Health Index</h2>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(224, 169, 109, 0.15)', padding: '0.35rem 0.85rem', borderRadius: '20px', border: '1px solid rgba(224, 169, 109, 0.3)' }}>
-                      <Award size={16} style={{ color: 'var(--primary)' }} />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary)' }}>Health Score: {aiInsights.score}/100 ({aiInsights.status})</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      <button className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '0.3rem 0.75rem', gap: '6px' }} onClick={() => setShowAiChatModal(true)}>
+                        <Sparkles size={14} style={{ color: 'var(--primary)' }} /> Chat with AI Coach
+                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(224, 169, 109, 0.15)', padding: '0.35rem 0.85rem', borderRadius: '20px', border: '1px solid rgba(224, 169, 109, 0.3)' }}>
+                        <Award size={16} style={{ color: 'var(--primary)' }} />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary)' }}>Health Score: {aiInsights.score}/100 ({aiInsights.status})</span>
+                      </div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
@@ -2781,6 +2886,83 @@ function App() {
                   Save Changes
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* FinFlow AI Financial Coach Chat Modal */}
+      {showAiChatModal && (
+        <div className="modal-overlay">
+          <div className="glass-card modal-content" style={{ maxWidth: '540px', display: 'flex', flexDirection: 'column', maxHeight: '85vh' }}>
+            <div className="modal-header" style={{ marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Sparkles size={22} style={{ color: 'var(--primary)' }} />
+                <div>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>FinFlow AI Financial Coach</h2>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Personalized LLM advice & smart budgeting assistant</p>
+                </div>
+              </div>
+              <button className="action-btn" onClick={() => setShowAiChatModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Quick Prompt Chips */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', overflowX: 'auto', paddingBottom: '4px' }}>
+              <button className="btn btn-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem', flexShrink: 0 }} onClick={(e) => handleAiChatSubmit(e, 'How can I save more money this month?')}>
+                💡 How to save more?
+              </button>
+              <button className="btn btn-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem', flexShrink: 0 }} onClick={(e) => handleAiChatSubmit(e, 'Analyze my spending habits and budget leaks')}>
+                📊 Budget leaks
+              </button>
+              <button className="btn btn-outline" style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem', flexShrink: 0 }} onClick={(e) => handleAiChatSubmit(e, 'What is the best way to invest my savings?')}>
+                📈 Investment advice
+              </button>
+            </div>
+
+            {/* Chat Conversation History */}
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '1rem', paddingRight: '4px', minHeight: '220px' }}>
+              {aiChatMessages.map((msg, idx) => (
+                <div 
+                  key={idx} 
+                  style={{ 
+                    alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                    maxWidth: '85%',
+                    background: msg.sender === 'user' ? 'linear-gradient(135deg, var(--primary) 0%, #a855f7 100%)' : 'rgba(255,255,255,0.04)',
+                    color: msg.sender === 'user' ? '#fff' : 'var(--text-primary)',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '12px',
+                    border: msg.sender === 'user' ? 'none' : '1px solid var(--card-border)',
+                    fontSize: '0.88rem',
+                    whiteSpace: 'pre-line',
+                    lineHeight: '1.45'
+                  }}
+                >
+                  {msg.text}
+                </div>
+              ))}
+              {aiChatLoading && (
+                <div style={{ alignSelf: 'flex-start', color: 'var(--text-secondary)', fontSize: '0.85rem', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Sparkles size={14} style={{ color: 'var(--primary)', animation: 'spin 1s linear infinite' }} />
+                  FinFlow AI is thinking...
+                </div>
+              )}
+            </div>
+
+            {/* Chat Input Form */}
+            <form onSubmit={handleAiChatSubmit} style={{ display: 'flex', gap: '0.75rem' }}>
+              <input 
+                type="text" 
+                className="glass-input" 
+                placeholder="Ask AI Coach a question..." 
+                value={aiChatQuery}
+                onChange={(e) => setAiChatQuery(e.target.value)}
+                style={{ flex: 1 }}
+              />
+              <button type="submit" className="btn btn-primary" disabled={aiChatLoading}>
+                Send
+              </button>
             </form>
           </div>
         </div>
