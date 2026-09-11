@@ -883,11 +883,21 @@ function App() {
     const fv1 = Math.round(calcFV(12));
     const fv3 = Math.round(calcFV(36));
     const fv5 = Math.round(calcFV(60));
+    const fv10 = Math.round(calcFV(120));
+
+    const totalInvested1 = totalP * 12;
+    const interestGained1 = Math.max(0, fv1 - totalInvested1);
 
     const totalInvested3 = totalP * 36;
     const interestGained3 = Math.max(0, fv3 - totalInvested3);
 
-    return { fv1, fv3, fv5, totalP, cutSavings, interestGained3 };
+    const totalInvested5 = totalP * 60;
+    const interestGained5 = Math.max(0, fv5 - totalInvested5);
+
+    const totalInvested10 = totalP * 120;
+    const interestGained10 = Math.max(0, fv10 - totalInvested10);
+
+    return { fv1, fv3, fv5, fv10, totalP, cutSavings, interestGained1, interestGained3, interestGained5, interestGained10, totalInvested1, totalInvested3, totalInvested5, totalInvested10 };
   }, [forecastMonthlyExtra, forecastReturnRate, forecastCutPercent, computedStats.expenses]);
 
   // Filters logic
@@ -1121,6 +1131,13 @@ function App() {
             <Target size={18} />
             Savings Goals
           </li>
+          <li 
+            className={`nav-item ${activeTab === 'forecaster' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('forecaster'); setIsSidebarOpen(false); }}
+          >
+            <Compass size={18} />
+            Wealth Forecaster
+          </li>
         </ul>
 
         <div className="sidebar-footer">
@@ -1157,6 +1174,7 @@ function App() {
               {activeTab === 'budgets' && 'Budgets & Limits'}
               {activeTab === 'subscriptions' && 'Auto-Debit Subscriptions'}
               {activeTab === 'goals' && 'Savings Goals & Target Milestones'}
+              {activeTab === 'forecaster' && 'FinFlow Horizon • Wealth Forecaster'}
               {activeTab === 'profile' && 'User Profile & Financial Portfolio'}
             </h1>
             <p>
@@ -1165,6 +1183,7 @@ function App() {
               {activeTab === 'budgets' && 'Define limits per expense category to monitor and curb spending'}
               {activeTab === 'subscriptions' && 'Monitor and manage monthly auto-debit payments and upcoming bills'}
               {activeTab === 'goals' && 'Track progress towards your savings targets and milestone allocations'}
+              {activeTab === 'forecaster' && 'Interactive compound growth simulator & strategic long-term wealth planner'}
               {activeTab === 'profile' && 'View your personal profile, transaction analytics, and financial milestones'}
             </p>
           </div>
@@ -1293,105 +1312,6 @@ function App() {
                         <span>{tip}</span>
                       </div>
                     ))}
-                  </div>
-                </div>
-
-                {/* FinFlow Horizon: Smart Wealth Forecaster Card */}
-                <div className="glass-card" style={{ marginBottom: '2rem', border: '1px solid rgba(16, 185, 129, 0.3)', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(24, 24, 27, 0.7) 100%)', padding: '1.75rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Compass size={22} style={{ color: '#10b981' }} />
-                      <div>
-                        <h2 style={{ fontSize: '1.2rem', fontWeight: 700 }}>FinFlow Horizon • Smart Wealth Forecaster</h2>
-                        <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Interactive compound wealth simulator & strategic horizon planner</p>
-                      </div>
-                    </div>
-                    <span className="badge badge-income" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                      Predictive Engine
-                    </span>
-                  </div>
-
-                  {/* Controls Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '1.5rem' }}>
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label className="form-label" style={{ fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Extra Monthly Savings ({currencySymbol})</span>
-                        <strong style={{ color: 'var(--primary)' }}>{currencySymbol}{Number(forecastMonthlyExtra).toLocaleString()}</strong>
-                      </label>
-                      <input 
-                        type="range" 
-                        min="0" 
-                        max="100000" 
-                        step="1000"
-                        className="glass-input"
-                        value={forecastMonthlyExtra} 
-                        onChange={(e) => setForecastMonthlyExtra(e.target.value)} 
-                        style={{ width: '100%', accentColor: 'var(--primary)', cursor: 'pointer', padding: '0.4rem' }}
-                      />
-                    </div>
-
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label className="form-label" style={{ fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Annual Return Rate (%)</span>
-                        <strong style={{ color: '#10b981' }}>{forecastReturnRate}% p.a.</strong>
-                      </label>
-                      <input 
-                        type="range" 
-                        min="1" 
-                        max="20" 
-                        step="0.5"
-                        className="glass-input"
-                        value={forecastReturnRate} 
-                        onChange={(e) => setForecastReturnRate(e.target.value)} 
-                        style={{ width: '100%', accentColor: '#10b981', cursor: 'pointer', padding: '0.4rem' }}
-                      />
-                    </div>
-
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label className="form-label" style={{ fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Expense Optimization ({forecastCutPercent}%)</span>
-                        <strong style={{ color: '#fbbf24' }}>+{currencySymbol}{Math.round(wealthForecast.cutSavings).toLocaleString()}/mo</strong>
-                      </label>
-                      <input 
-                        type="range" 
-                        min="0" 
-                        max="30" 
-                        step="1"
-                        className="glass-input"
-                        value={forecastCutPercent} 
-                        onChange={(e) => setForecastCutPercent(e.target.value)} 
-                        style={{ width: '100%', accentColor: '#fbbf24', cursor: 'pointer', padding: '0.4rem' }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Output Results Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                    <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid var(--card-border)' }}>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>1-Year Horizon</div>
-                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
-                        {currencySymbol}{wealthForecast.fv1.toLocaleString()}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>12 months accumulated</div>
-                    </div>
-
-                    <div style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '10px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                      <div style={{ fontSize: '0.78rem', color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>3-Year Horizon</div>
-                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#10b981', marginTop: '4px' }}>
-                        {currencySymbol}{wealthForecast.fv3.toLocaleString()}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'rgba(16, 185, 129, 0.8)', marginTop: '2px' }}>
-                        Includes +{currencySymbol}{Math.round(wealthForecast.interestGained3).toLocaleString()} interest
-                      </div>
-                    </div>
-
-                    <div style={{ padding: '1rem', background: 'rgba(224, 169, 109, 0.08)', borderRadius: '10px', border: '1px solid rgba(224, 169, 109, 0.3)' }}>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>5-Year Horizon</div>
-                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)', marginTop: '4px' }}>
-                        {currencySymbol}{wealthForecast.fv5.toLocaleString()}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>60 months compounded</div>
-                    </div>
                   </div>
                 </div>
 
@@ -1958,6 +1878,221 @@ function App() {
                     })}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* FinFlow Horizon • Wealth Forecaster Tab */}
+            {activeTab === 'forecaster' && (
+              <div className="fade-in">
+                {/* Banner & Preset Header */}
+                <div className="glass-card" style={{ marginBottom: '2rem', border: '1px solid rgba(16, 185, 129, 0.3)', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(24, 24, 27, 0.8) 100%)', padding: '2rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                      <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Compass size={32} style={{ color: '#10b981' }} />
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <h1 style={{ fontSize: '1.6rem', fontWeight: 800 }}>FinFlow Horizon • Wealth Forecaster</h1>
+                          <span className="badge badge-income" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)' }}>Predictive Engine</span>
+                        </div>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
+                          Simulate compound growth, expense optimizations, and long-term wealth compounding timelines in real-time.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem' }} onClick={() => { setForecastMonthlyExtra(5000); setForecastReturnRate(8); setForecastCutPercent(10); }}>
+                        8% SIP Default
+                      </button>
+                      <button className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem' }} onClick={() => { setForecastMonthlyExtra(10000); setForecastReturnRate(12); setForecastCutPercent(15); }}>
+                        12% Equity Growth
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Interactive Sliders Grid */}
+                <div className="glass-card" style={{ marginBottom: '2rem' }}>
+                  <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Sliders size={20} style={{ color: 'var(--primary)' }} /> Interactive Simulation Parameters
+                  </h2>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.75rem' }}>
+                    {/* Extra Monthly Savings */}
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>Extra Monthly Investment ({currencySymbol})</span>
+                        <strong style={{ color: 'var(--primary)', fontSize: '1.05rem' }}>{currencySymbol}{Number(forecastMonthlyExtra).toLocaleString()}</strong>
+                      </label>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="100000" 
+                        step="1000"
+                        className="glass-input"
+                        value={forecastMonthlyExtra} 
+                        onChange={(e) => setForecastMonthlyExtra(e.target.value)} 
+                        style={{ width: '100%', accentColor: 'var(--primary)', cursor: 'pointer', marginTop: '0.5rem' }}
+                      />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                        <span>{currencySymbol}0</span>
+                        <span>{currencySymbol}50,000</span>
+                        <span>{currencySymbol}1,00,000</span>
+                      </div>
+                    </div>
+
+                    {/* Return Rate */}
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>Annual Return Rate (% p.a.)</span>
+                        <strong style={{ color: '#10b981', fontSize: '1.05rem' }}>{forecastReturnRate}% p.a.</strong>
+                      </label>
+                      <input 
+                        type="range" 
+                        min="1" 
+                        max="20" 
+                        step="0.5"
+                        className="glass-input"
+                        value={forecastReturnRate} 
+                        onChange={(e) => setForecastReturnRate(e.target.value)} 
+                        style={{ width: '100%', accentColor: '#10b981', cursor: 'pointer', marginTop: '0.5rem' }}
+                      />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                        <span>1% (Savings DB)</span>
+                        <span>8% (Index)</span>
+                        <span>20% (Aggressive)</span>
+                      </div>
+                    </div>
+
+                    {/* Expense Optimization */}
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>Expense Cut ({forecastCutPercent}%)</span>
+                        <strong style={{ color: '#fbbf24', fontSize: '1.05rem' }}>+{currencySymbol}{Math.round(wealthForecast.cutSavings).toLocaleString()}/mo</strong>
+                      </label>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="30" 
+                        step="1"
+                        className="glass-input"
+                        value={forecastCutPercent} 
+                        onChange={(e) => setForecastCutPercent(e.target.value)} 
+                        style={{ width: '100%', accentColor: '#fbbf24', cursor: 'pointer', marginTop: '0.5rem' }}
+                      />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                        <span>0%</span>
+                        <span>15%</span>
+                        <span>30% Cut</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Horizon Cards Matrix */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                  <div className="glass-card" style={{ border: '1px solid var(--card-border)' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>1-Year Horizon</div>
+                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '6px' }}>
+                      {currencySymbol}{wealthForecast.fv1.toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+                      Principal: {currencySymbol}{wealthForecast.totalInvested1.toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: '#10b981', marginTop: '2px' }}>
+                      Interest: +{currencySymbol}{wealthForecast.interestGained1.toLocaleString()}
+                    </div>
+                  </div>
+
+                  <div className="glass-card" style={{ border: '1px solid rgba(16, 185, 129, 0.3)', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(24, 24, 27, 0.8) 100%)' }}>
+                    <div style={{ fontSize: '0.8rem', color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>3-Year Horizon</div>
+                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#10b981', marginTop: '6px' }}>
+                      {currencySymbol}{wealthForecast.fv3.toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+                      Principal: {currencySymbol}{wealthForecast.totalInvested3.toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: '#10b981', marginTop: '2px', fontWeight: 600 }}>
+                      Interest: +{currencySymbol}{wealthForecast.interestGained3.toLocaleString()}
+                    </div>
+                  </div>
+
+                  <div className="glass-card" style={{ border: '1px solid rgba(224, 169, 109, 0.3)', background: 'linear-gradient(135deg, rgba(224, 169, 109, 0.06) 0%, rgba(24, 24, 27, 0.8) 100%)' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>5-Year Horizon</div>
+                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', marginTop: '6px' }}>
+                      {currencySymbol}{wealthForecast.fv5.toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+                      Principal: {currencySymbol}{wealthForecast.totalInvested5.toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--primary)', marginTop: '2px', fontWeight: 600 }}>
+                      Interest: +{currencySymbol}{wealthForecast.interestGained5.toLocaleString()}
+                    </div>
+                  </div>
+
+                  <div className="glass-card" style={{ border: '1px solid rgba(168, 85, 247, 0.3)', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.06) 0%, rgba(24, 24, 27, 0.8) 100%)' }}>
+                    <div style={{ fontSize: '0.8rem', color: '#a855f7', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>10-Year Horizon</div>
+                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#a855f7', marginTop: '6px' }}>
+                      {currencySymbol}{wealthForecast.fv10.toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+                      Principal: {currencySymbol}{wealthForecast.totalInvested10.toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: '#a855f7', marginTop: '2px', fontWeight: 600 }}>
+                      Interest: +{currencySymbol}{wealthForecast.interestGained10.toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Compound Breakdown Matrix Table */}
+                <div className="glass-card">
+                  <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1rem' }}>Compounding Schedule Breakdown</h2>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid var(--card-border)', color: 'var(--text-secondary)' }}>
+                          <th style={{ padding: '0.75rem 1rem' }}>Timeline</th>
+                          <th style={{ padding: '0.75rem 1rem' }}>Monthly Contribution</th>
+                          <th style={{ padding: '0.75rem 1rem' }}>Total Deposited</th>
+                          <th style={{ padding: '0.75rem 1rem' }}>Compound Interest</th>
+                          <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Projected Net Worth</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
+                          <td style={{ padding: '1rem', fontWeight: 700 }}>Year 1 (12 Months)</td>
+                          <td style={{ padding: '1rem' }}>{currencySymbol}{Math.round(wealthForecast.totalP).toLocaleString()}/mo</td>
+                          <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{currencySymbol}{wealthForecast.totalInvested1.toLocaleString()}</td>
+                          <td style={{ padding: '1rem', color: '#10b981', fontWeight: 600 }}>+{currencySymbol}{wealthForecast.interestGained1.toLocaleString()}</td>
+                          <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 800, fontSize: '1rem' }}>{currencySymbol}{wealthForecast.fv1.toLocaleString()}</td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
+                          <td style={{ padding: '1rem', fontWeight: 700 }}>Year 3 (36 Months)</td>
+                          <td style={{ padding: '1rem' }}>{currencySymbol}{Math.round(wealthForecast.totalP).toLocaleString()}/mo</td>
+                          <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{currencySymbol}{wealthForecast.totalInvested3.toLocaleString()}</td>
+                          <td style={{ padding: '1rem', color: '#10b981', fontWeight: 600 }}>+{currencySymbol}{wealthForecast.interestGained3.toLocaleString()}</td>
+                          <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 800, fontSize: '1rem', color: '#10b981' }}>{currencySymbol}{wealthForecast.fv3.toLocaleString()}</td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
+                          <td style={{ padding: '1rem', fontWeight: 700 }}>Year 5 (60 Months)</td>
+                          <td style={{ padding: '1rem' }}>{currencySymbol}{Math.round(wealthForecast.totalP).toLocaleString()}/mo</td>
+                          <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{currencySymbol}{wealthForecast.totalInvested5.toLocaleString()}</td>
+                          <td style={{ padding: '1rem', color: 'var(--primary)', fontWeight: 600 }}>+{currencySymbol}{wealthForecast.interestGained5.toLocaleString()}</td>
+                          <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 800, fontSize: '1rem', color: 'var(--primary)' }}>{currencySymbol}{wealthForecast.fv5.toLocaleString()}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: '1rem', fontWeight: 700 }}>Year 10 (120 Months)</td>
+                          <td style={{ padding: '1rem' }}>{currencySymbol}{Math.round(wealthForecast.totalP).toLocaleString()}/mo</td>
+                          <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{currencySymbol}{wealthForecast.totalInvested10.toLocaleString()}</td>
+                          <td style={{ padding: '1rem', color: '#a855f7', fontWeight: 600 }}>+{currencySymbol}{wealthForecast.interestGained10.toLocaleString()}</td>
+                          <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 800, fontSize: '1rem', color: '#a855f7' }}>{currencySymbol}{wealthForecast.fv10.toLocaleString()}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             )}
 
