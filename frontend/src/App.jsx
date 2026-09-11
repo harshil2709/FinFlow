@@ -1081,7 +1081,7 @@ function App() {
           </div>
 
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            {transactions.length === 0 && (
+            {!currentUser && transactions.length === 0 && (
               <button className="btn btn-outline" onClick={handleAddSampleData} style={{ gap: '6px' }}>
                 <Database size={16} />
                 Load Demo Data
