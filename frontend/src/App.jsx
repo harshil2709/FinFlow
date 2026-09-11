@@ -31,7 +31,9 @@ import {
   PlusCircle,
   Award,
   Zap,
-  PiggyBank
+  PiggyBank,
+  Compass,
+  Sliders
 } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -127,6 +129,11 @@ function App() {
   const [goalDate, setGoalDate] = useState(new Date().toISOString().split('T')[0]);
   const [goalCategory, setGoalCategory] = useState('Savings');
   const [depositAmount, setDepositAmount] = useState('');
+
+  // FinFlow Horizon Forecaster State
+  const [forecastMonthlyExtra, setForecastMonthlyExtra] = useState(5000);
+  const [forecastReturnRate, setForecastReturnRate] = useState(8);
+  const [forecastCutPercent, setForecastCutPercent] = useState(10);
   // Settings State
   const [currencySymbol, setCurrencySymbol] = useState(() => localStorage.getItem('finflow_currency') || '₹');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -857,6 +864,32 @@ function App() {
     };
   }, [transactions]);
 
+  // Calculate FinFlow Horizon Wealth Forecast
+  const wealthForecast = useMemo(() => {
+    const extraP = Number(forecastMonthlyExtra) || 0;
+    const monthlyExpenses = computedStats.expenses || 0;
+    const cutSavings = monthlyExpenses * ((Number(forecastCutPercent) || 0) / 100);
+    const totalP = extraP + cutSavings;
+
+    const ratePct = Number(forecastReturnRate) || 0;
+    const r = (ratePct / 100) / 12;
+
+    const calcFV = (months) => {
+      if (totalP <= 0) return 0;
+      if (r <= 0) return totalP * months;
+      return totalP * ((Math.pow(1 + r, months) - 1) / r);
+    };
+
+    const fv1 = Math.round(calcFV(12));
+    const fv3 = Math.round(calcFV(36));
+    const fv5 = Math.round(calcFV(60));
+
+    const totalInvested3 = totalP * 36;
+    const interestGained3 = Math.max(0, fv3 - totalInvested3);
+
+    return { fv1, fv3, fv5, totalP, cutSavings, interestGained3 };
+  }, [forecastMonthlyExtra, forecastReturnRate, forecastCutPercent, computedStats.expenses]);
+
   // Filters logic
   const filteredTransactions = useMemo(() => {
     return transactions.filter((t) => {
@@ -1260,6 +1293,105 @@ function App() {
                         <span>{tip}</span>
                       </div>
                     ))}
+                  </div>
+                </div>
+
+                {/* FinFlow Horizon: Smart Wealth Forecaster Card */}
+                <div className="glass-card" style={{ marginBottom: '2rem', border: '1px solid rgba(16, 185, 129, 0.3)', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(24, 24, 27, 0.7) 100%)', padding: '1.75rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Compass size={22} style={{ color: '#10b981' }} />
+                      <div>
+                        <h2 style={{ fontSize: '1.2rem', fontWeight: 700 }}>FinFlow Horizon • Smart Wealth Forecaster</h2>
+                        <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Interactive compound wealth simulator & strategic horizon planner</p>
+                      </div>
+                    </div>
+                    <span className="badge badge-income" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                      Predictive Engine
+                    </span>
+                  </div>
+
+                  {/* Controls Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '1.5rem' }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Extra Monthly Savings ({currencySymbol})</span>
+                        <strong style={{ color: 'var(--primary)' }}>{currencySymbol}{Number(forecastMonthlyExtra).toLocaleString()}</strong>
+                      </label>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="100000" 
+                        step="1000"
+                        className="glass-input"
+                        value={forecastMonthlyExtra} 
+                        onChange={(e) => setForecastMonthlyExtra(e.target.value)} 
+                        style={{ width: '100%', accentColor: 'var(--primary)', cursor: 'pointer', padding: '0.4rem' }}
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Annual Return Rate (%)</span>
+                        <strong style={{ color: '#10b981' }}>{forecastReturnRate}% p.a.</strong>
+                      </label>
+                      <input 
+                        type="range" 
+                        min="1" 
+                        max="20" 
+                        step="0.5"
+                        className="glass-input"
+                        value={forecastReturnRate} 
+                        onChange={(e) => setForecastReturnRate(e.target.value)} 
+                        style={{ width: '100%', accentColor: '#10b981', cursor: 'pointer', padding: '0.4rem' }}
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Expense Optimization ({forecastCutPercent}%)</span>
+                        <strong style={{ color: '#fbbf24' }}>+{currencySymbol}{Math.round(wealthForecast.cutSavings).toLocaleString()}/mo</strong>
+                      </label>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="30" 
+                        step="1"
+                        className="glass-input"
+                        value={forecastCutPercent} 
+                        onChange={(e) => setForecastCutPercent(e.target.value)} 
+                        style={{ width: '100%', accentColor: '#fbbf24', cursor: 'pointer', padding: '0.4rem' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Output Results Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                    <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid var(--card-border)' }}>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>1-Year Horizon</div>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
+                        {currencySymbol}{wealthForecast.fv1.toLocaleString()}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>12 months accumulated</div>
+                    </div>
+
+                    <div style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '10px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                      <div style={{ fontSize: '0.78rem', color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>3-Year Horizon</div>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#10b981', marginTop: '4px' }}>
+                        {currencySymbol}{wealthForecast.fv3.toLocaleString()}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'rgba(16, 185, 129, 0.8)', marginTop: '2px' }}>
+                        Includes +{currencySymbol}{Math.round(wealthForecast.interestGained3).toLocaleString()} interest
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '1rem', background: 'rgba(224, 169, 109, 0.08)', borderRadius: '10px', border: '1px solid rgba(224, 169, 109, 0.3)' }}>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>5-Year Horizon</div>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)', marginTop: '4px' }}>
+                        {currencySymbol}{wealthForecast.fv5.toLocaleString()}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>60 months compounded</div>
+                    </div>
                   </div>
                 </div>
 
