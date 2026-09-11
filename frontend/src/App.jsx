@@ -1575,7 +1575,7 @@ function App() {
                           <p style={{ fontSize: '0.85rem', marginTop: '4px' }}>Get started by adding some income or expenses.</p>
                         </div>
                       ) : (
-                        <div className="table-wrapper">
+                        <div className="table-wrapper" style={{ maxHeight: '340px', overflowY: 'auto', paddingRight: '4px' }}>
                           <table className="transaction-table">
                             <thead>
                               <tr>
@@ -1586,7 +1586,7 @@ function App() {
                               </tr>
                             </thead>
                             <tbody>
-                              {transactions.slice(0, 5).map((t) => (
+                              {transactions.slice(0, 25).map((t) => (
                                 <tr key={t._id}>
                                   <td>
                                     <div style={{ fontWeight: 600 }}>{t.title}</div>
