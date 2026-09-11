@@ -1,47 +1,68 @@
-# FinFlow | Premium Full-Stack Expense & Budget Tracker
+# FinFlow | Premium Full-Stack Expense & Wealth Management Platform
 
-FinFlow is a resilient, feature-rich financial dashboard built on the **MERN (MongoDB, Express, React, Node.js)** stack. It offers real-time analytics, category budgeting, and transaction compliance, wrapped in a premium glassmorphic dark-themed user interface.
-
----
-
-## 🚀 Key Highlights (For Resume / Interviews)
-
-- **Resilient Hybrid Storage Engine**: Architected a custom fail-safe database connection system that dynamically tests local/cloud MongoDB connectivity (with a 2s timeout) and automatically falls back to local JSON flat-file storage when database clusters are unreachable, ensuring **100% uptime**.
-- **Interactive Financial Analytics**: Developed time-series trend lines and category distribution doughnut charts utilizing `react-chartjs-2`, displaying instant updates as CRUD operations occur.
-- **Budget Compliance Monitor**: Programmed a category-wise limit tracking engine showing real-time visual progress gauges (Safe, Warning, Exceeded) comparing actual spend against limits.
-- **Auto-Debit Subscriptions Tracker**: Engineered a recurring billing tracker that aggregates fixed monthly auto-debits (normalizing yearly fees) and renders a color-coded upcoming payment timeline with dynamic alerts.
-- **Data Export & Portability**: Integrated a client-side CSV encoder enabling instant, custom-filtered data downloads based on search text, categories, dates, and transaction types.
-- **Placement Demonstration Mode**: Added an automated seeding engine to populate the database with comprehensive mock transactions and budgets, facilitating friction-free recruiter evaluations.
+FinFlow is a resilient, enterprise-grade financial management platform built on the **MERN (MongoDB, Express, React, Node.js)** stack. It features real-time financial health analytics, auto-debit subscription tracking, interactive compound wealth forecasting (**FinFlow Horizon**), multi-stage **Docker containerization**, and automated **GitHub Actions CI/CD pipelines**.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## 🚀 Key Technical Highlights (Resume & Placement Ready)
+
+- **🐳 Multi-Stage Docker Containerization**: Fully containerized using Nginx-served multi-stage builds for the React frontend, Node.js Alpine base images for the API backend, and automated container orchestration via `docker-compose.yml`.
+- **⚡ Automated GitHub Actions CI/CD Pipeline**: Configured `.github/workflows/ci-cd.yml` to automatically execute dependency checks, React production bundle compilation, and Docker image builds on every push to `main`.
+- **🌅 FinFlow Horizon Predictive Engine**: Built an interactive compound wealth growth simulator allowing users to project 1-Year, 3-Year, 5-Year, and 10-Year compounding horizons based on monthly savings, expected returns, and expense cuts.
+- **🛡️ Resilient Hybrid Storage Engine**: Architected a custom fail-safe database connection system that dynamically tests local/cloud MongoDB connectivity (with a 2s timeout) and automatically falls back to local JSON flat-file storage when database clusters are unreachable, ensuring **100% uptime**.
+- **📊 Interactive Financial Analytics & AI Health Index**: Integrated Chart.js time-series trend lines, category distribution doughnut charts, and a real-time Financial Health Advisor (0-100 score).
+- **📅 Auto-Debit Subscriptions Tracker**: Engineered a recurring billing tracker that aggregates fixed monthly auto-debits (normalizing yearly fees) and renders a color-coded upcoming payment timeline with dynamic alerts.
+- **📄 1-Click CSV Statement Exporter**: Client-side CSV encoder enabling instant, custom-filtered financial data exports.
+
+---
+
+## 🛠️ Architecture & Tech Stack
 
 ```mermaid
 graph TD
-    subgraph "Frontend (React + Vite)"
-        A[Dashboard UI] -->|API Calls| B[Fetch API Services]
-        C[Custom Glassmorphism CSS] -.-> A
-        A -->|Interactive Visualizations| D[Chart.js / React-Chartjs-2]
+    subgraph "CI/CD & Containerization"
+        GA[GitHub Actions Pipeline] -->|Build & Test| DC[Docker Compose]
+        DC -->|Container 1| FE[Frontend Nginx Container :80]
+        DC -->|Container 2| BE[Backend Express Container :5000]
+        DC -->|Container 3| DB[MongoDB Database Container :27017]
     end
 
-    subgraph "Backend (Express.js / Node.js)"
-        B -->|REST Requests| E[server.js Gateway]
-        E -->|Routing Layer| F[expenseroutes.js]
-        F -->|Business Logic| G[expensecontroller.js]
+    subgraph "Frontend (React + Vite)"
+        FE -->|UI Views| A[Dashboard / Horizon / Goals]
+        A -->|Interactive Charts| D[Chart.js / React-Chartjs-2]
     end
 
     subgraph "Storage Layer"
-        G -->|Dynamic Driver Check| H{Mongoose Active?}
-        H -->|Yes| I[(MongoDB Cloud / Local)]
-        H -->|No Fallback| J[(Local JSON Storage)]
+        BE -->|Driver Check| H{Mongoose Cluster Active?}
+        H -->|Yes| I[(MongoDB Cloud / Local Container)]
+        H -->|Fallback| J[(Local JSON Storage)]
     end
 ```
 
-- **Frontend**: React (Vite), Chart.js, Lucide Icons
-- **Backend**: Node.js, Express.js, Cors, Dotenv, Nodemon
+- **Frontend**: React.js (Vite), Chart.js, Lucide Icons, Glassmorphic CSS
+- **Backend**: Node.js, Express.js, Cors, Dotenv
+- **DevOps & Cloud**: Docker, Docker Compose, Nginx, GitHub Actions CI/CD
+- **Deployment**: Live on **Vercel** (Frontend) and **Render** (Backend)
 - **Database / Storage**: MongoDB (Mongoose ODM) & Local File System (JSON Flat-files)
-- **Styling**: Vanilla CSS Variables (Sleek Glassmorphic Palette, Keyframe Animations)
+
+---
+
+## 🐳 Running with Docker (One-Command Setup)
+
+You can launch the entire stack (Frontend, Backend, and MongoDB Database) with a single command:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/harshil2709/FinFlow.git
+cd FinFlow
+
+# 2. Build and launch all Docker containers
+docker compose up --build
+```
+
+- **Frontend SPA**: `http://localhost`
+- **Express Backend API**: `http://localhost:5000/api`
+- **MongoDB**: `localhost:27017`
 
 ---
 
@@ -50,75 +71,42 @@ graph TD
 All endpoints are prefixed with `/api`.
 
 ### Transactions API
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/expenses` | `GET` | Fetches filtered transactions |
+| `/expenses` | `POST` | Creates a new transaction |
+| `/expenses/:id` | `PUT` | Updates an existing transaction |
+| `/expenses/:id` | `DELETE`| Deletes a transaction |
 
-| Endpoint | Method | Description | Payload Example |
-| :--- | :--- | :--- | :--- |
-| `/expenses` | `GET` | Fetches filtered transactions | *Query params: `type`, `category`, `search`, `startDate`, `endDate`* |
-| `/expenses` | `POST` | Creates a transaction | `{"title": "Internet", "amount": 1500, "type": "expense", "category": "Utilities"}` |
-| `/expenses/:id` | `PUT` | Updates a transaction | `{"title": "Gourmet Dinner", "amount": 1800}` |
-| `/expenses/:id` | `DELETE`| Deletes a transaction | *None* |
+### Savings Goals API
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/goals` | `GET` | Fetches user savings goals |
+| `/goals` | `POST` | Creates a new savings goal |
+| `/goals/:id` | `PUT` | Updates goal current deposit amount |
+| `/goals/:id` | `DELETE`| Removes a savings goal |
 
-### Budgets API
-
-| Endpoint | Method | Description | Payload Example |
-| :--- | :--- | :--- | :--- |
-| `/budgets` | `GET` | Get all budget category limits | *None* |
-| `/budgets` | `POST` | Upsert budget limit | `{"category": "Food", "limit": 8000}` |
-| `/budgets/:id` | `DELETE`| Delete budget limit | *None* |
-
-### System Status API
-
-| Endpoint | Method | Description | Payload Example |
-| :--- | :--- | :--- | :--- |
-| `/status` | `GET` | Get live database connection type | *None* |
-
-### Subscriptions API
-
-| Endpoint | Method | Description | Payload Example |
-| :--- | :--- | :--- | :--- |
-| `/subscriptions` | `GET` | Get auto-debit subscriptions | *None* |
-| `/subscriptions` | `POST` | Create a subscription | `{"title": "Spotify", "amount": 119, "billingCycle": "monthly", "category": "Entertainment", "nextDueDate": "2026-07-21"}` |
-| `/subscriptions/:id` | `PUT` | Update subscription status/details | `{"status": "paused"}` |
-| `/subscriptions/:id` | `DELETE`| Remove subscription | *None* |
+### Subscriptions & Budgets API
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/subscriptions` | `GET` / `POST` / `PUT` / `DELETE` | Auto-debit subscription management |
+| `/budgets` | `GET` / `POST` / `DELETE` | Category budget limit management |
 
 ---
 
-## 🏃‍♂️ Installation & Setup
-
-### Prerequisites
-- Node.js (v18+)
-- MongoDB (Optional; falls back to local storage if not running)
+## 🏃‍♂️ Manual Local Setup (Without Docker)
 
 ### 1. Backend Setup
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Configure environment variables in `.env`:
-   ```env
-   PORT=5000
-   MONGODB_URI=mongodb://127.0.0.1:27017/expense-tracker
-   ```
-4. Start the server:
-   ```bash
-   npm run dev
-   ```
+```bash
+cd backend
+npm install
+npm run dev
+```
 
 ### 2. Frontend Setup
-1. Navigate to the frontend directory:
-   ```bash
-   cd ../frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the Vite React development server:
-   ```bash
-   npm run dev
-   ```
-4. Open your browser and navigate to `http://localhost:5173`.
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Open `http://localhost:5173` in your browser.

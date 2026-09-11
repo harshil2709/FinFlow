@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # MongoDB Database Container
+  mongodb:
+    image: mongo:latest
+    container_name: finflow-db
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: expensetracker
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - finflow-net
+
+  # Express Node.js Backend Container
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: finflow-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+      MONGO_URI: mongodb://mongodb:27017/expensetracker
+      NODE_ENV: production
+    depends_on:
+      - mongodb
+    networks:
+      - finflow-net
+
+  # React Nginx Frontend Container
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: finflow-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - finflow-net
+
+networks:
+  finflow-net:
+    driver: bridge
+
+volumes:
+  mongo-data:
